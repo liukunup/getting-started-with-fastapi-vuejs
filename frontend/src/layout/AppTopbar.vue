@@ -1,8 +1,30 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
 import AppConfigurator from './AppConfigurator.vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
+const router = useRouter();
+const menu = ref(null);
+const items = ref([
+    {
+        label: 'Profile',
+        icon: 'pi pi-user'
+    },
+    {
+        label: 'Logout',
+        icon: 'pi pi-sign-out',
+        command: () => {
+            localStorage.removeItem('token');
+            router.push('/auth/login');
+        }
+    }
+]);
+
+const toggleProfileMenu = (event) => {
+    menu.value.toggle(event);
+};
 </script>
 
 <template>
@@ -68,10 +90,11 @@ const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
                         <i class="pi pi-inbox"></i>
                         <span>Messages</span>
                     </button>
-                    <button type="button" class="layout-topbar-action">
+                    <button type="button" class="layout-topbar-action" @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
                         <i class="pi pi-user"></i>
                         <span>Profile</span>
                     </button>
+                    <Menu ref="menu" id="profile_menu" :model="items" :popup="true" />
                 </div>
             </div>
         </div>

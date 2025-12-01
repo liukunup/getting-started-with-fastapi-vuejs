@@ -98,6 +98,31 @@ const router = createRouter({
                     component: () => import('@/views/utilities/Blocks.vue')
                 },
                 {
+                    path: '/items',
+                    name: 'items',
+                    component: () => import('@/views/management/Items.vue')
+                },
+                {
+                    path: '/groups',
+                    name: 'groups',
+                    component: () => import('@/views/management/Groups.vue')
+                },
+                {
+                    path: '/applications',
+                    name: 'applications',
+                    component: () => import('@/views/management/Applications.vue')
+                },
+                {
+                    path: '/users',
+                    name: 'users',
+                    component: () => import('@/views/admin/Users.vue')
+                },
+                {
+                    path: '/settings',
+                    name: 'settings',
+                    component: () => import('@/views/admin/Settings.vue')
+                },
+                {
                     path: '/pages/empty',
                     name: 'empty',
                     component: () => import('@/views/pages/Empty.vue')
@@ -131,6 +156,21 @@ const router = createRouter({
             component: () => import('@/views/pages/auth/Login.vue')
         },
         {
+            path: '/auth/register',
+            name: 'register',
+            component: () => import('@/views/pages/auth/Register.vue')
+        },
+        {
+            path: '/auth/forgot-password',
+            name: 'forgotPassword',
+            component: () => import('@/views/pages/auth/ForgotPassword.vue')
+        },
+        {
+            path: '/auth/reset-password',
+            name: 'resetPassword',
+            component: () => import('@/views/pages/auth/ResetPassword.vue')
+        },
+        {
             path: '/auth/access',
             name: 'accessDenied',
             component: () => import('@/views/pages/auth/Access.vue')
@@ -141,6 +181,18 @@ const router = createRouter({
             component: () => import('@/views/pages/auth/Error.vue')
         }
     ]
+});
+
+router.beforeEach((to, from, next) => {
+    const publicPages = ['/landing', '/pages/notfound', '/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/access', '/auth/error'];
+    const authRequired = !publicPages.includes(to.path);
+    const loggedIn = localStorage.getItem('token');
+
+    if (authRequired && !loggedIn) {
+        return next('/auth/login');
+    }
+
+    next();
 });
 
 export default router;

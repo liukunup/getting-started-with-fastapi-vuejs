@@ -8,18 +8,17 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 const toast = useToast();
 
+const fullName = ref('');
 const email = ref('');
 const password = ref('');
-const checked = ref(false);
 const loading = ref(false);
 
-const onLogin = async () => {
+const onRegister = async () => {
     loading.value = true;
     try {
-        const data = await AuthService.login(email.value, password.value);
-        localStorage.setItem('token', data.access_token);
-        toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
-        router.push('/');
+        await AuthService.register(email.value, password.value, fullName.value);
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Registration successful. Please login.', life: 3000 });
+        router.push('/auth/login');
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 3000 });
     } finally {
@@ -53,28 +52,25 @@ const onLogin = async () => {
                                 />
                             </g>
                         </svg>
-                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome to PrimeLand!</div>
-                        <span class="text-muted-color font-medium">Sign in to continue</span>
+                        <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Register</div>
+                        <span class="text-muted-color font-medium">Create your account</span>
                     </div>
 
                     <div>
-                        <label for="email1" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
-                        <InputText id="email1" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" />
+                        <label for="fullname" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Full Name</label>
+                        <InputText id="fullname" type="text" placeholder="Full Name" class="w-full md:w-[30rem] mb-8" v-model="fullName" />
 
-                        <label for="password1" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
-                        <Password id="password1" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="false"></Password>
+                        <label for="email" class="block text-surface-900 dark:text-surface-0 text-xl font-medium mb-2">Email</label>
+                        <InputText id="email" type="text" placeholder="Email address" class="w-full md:w-[30rem] mb-8" v-model="email" />
 
-                        <div class="flex items-center justify-between mt-2 mb-8 gap-8">
-                            <div class="flex items-center">
-                                <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
-                                <label for="rememberme1">Remember me</label>
-                            </div>
-                            <router-link to="/auth/forgot-password" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</router-link>
-                        </div>
-                        <Button label="Sign In" class="w-full mb-4" @click="onLogin" :loading="loading"></Button>
+                        <label for="password" class="block text-surface-900 dark:text-surface-0 font-medium text-xl mb-2">Password</label>
+                        <Password id="password" v-model="password" placeholder="Password" :toggleMask="true" class="mb-4" fluid :feedback="true"></Password>
+
+                        <Button label="Sign Up" class="w-full mb-4" @click="onRegister" :loading="loading"></Button>
+
                         <div class="text-center">
-                            <span class="text-muted-color font-medium">Don't have an account? </span>
-                            <router-link to="/auth/register" class="font-medium no-underline ml-2 text-primary cursor-pointer">Sign Up</router-link>
+                            <span class="text-muted-color font-medium">Already have an account? </span>
+                            <router-link to="/auth/login" class="font-medium no-underline ml-2 text-primary cursor-pointer">Sign In</router-link>
                         </div>
                     </div>
                 </div>
@@ -82,15 +78,3 @@ const onLogin = async () => {
         </div>
     </div>
 </template>
-
-<style scoped>
-.pi-eye {
-    transform: scale(1.6);
-    margin-right: 1rem;
-}
-
-.pi-eye-slash {
-    transform: scale(1.6);
-    margin-right: 1rem;
-}
-</style>
