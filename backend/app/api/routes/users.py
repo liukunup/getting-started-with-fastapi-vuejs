@@ -7,11 +7,11 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, select
 
 from app.api.deps import (
+    CacheDep,
     CurrentUser,
     SessionDep,
     get_current_active_superuser,
 )
-from app.core.cache import redis_client
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.core.storage import storage
@@ -295,7 +295,8 @@ def delete_user(
 )
 def force_logout(
     user_id: uuid.UUID,
-    session: SessionDep,  # type: ignore
+    session: SessionDep,
+    cache: CacheDep,
 ) -> Any:
     """
     Force logout a user.
@@ -305,9 +306,7 @@ def force_logout(
         raise HTTPException(status_code=404, detail="User not found")
 
     # Set timestamp in redis
-    redis_client.set(
-        f"blacklist:user:{user_id}", datetime.now(timezone.utc).timestamp()
-    )
+    cache.redis.set(f"blacklist:user:{user_id}", datetime.now(timezone.utc).timestamp())
 
     return Message(message="User forced to logout")
 

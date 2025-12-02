@@ -4,7 +4,7 @@ from app.core.config import settings
 
 celery_app = Celery(
     "worker",
-    broker=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/{settings.REDIS_DB_INDEX}",
+    broker=settings.REDIS_URI,
     backend=f"db+{str(settings.SQLALCHEMY_DATABASE_URI)}",
 )
 

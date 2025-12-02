@@ -9,6 +9,9 @@ import ToastService from 'primevue/toastservice';
 
 import '@/assets/tailwind.css';
 import '@/assets/styles.scss';
+import { setApiUrl } from '@/service/api';
+
+setApiUrl(import.meta.env.VITE_API_URL);
 
 const app = createApp(App);
 

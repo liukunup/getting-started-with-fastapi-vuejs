@@ -106,7 +106,7 @@ def update_application(
     return app
 
 
-@router.delete("/{app_id}", response_model=ApplicationPublic)
+@router.delete("/{app_id}", response_model=Message)
 def delete_application(
     *,
     session: SessionDep,

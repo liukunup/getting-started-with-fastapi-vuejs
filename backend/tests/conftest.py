@@ -57,6 +57,6 @@ def superuser_token_headers_fixture(client: TestClient) -> dict[str, str]:
 
 @pytest.fixture(autouse=True)
 def mock_redis():
-    with patch("app.api.deps.redis_client") as mock:
+    with patch("app.api.deps.cache") as mock:
         mock.get.return_value = None
         yield mock

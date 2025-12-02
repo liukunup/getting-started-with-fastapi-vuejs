@@ -166,7 +166,7 @@ const deleteSelectedUsers = async () => {
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column header="Avatar" style="width: 5rem">
                     <template #body="{ data }">
-                        <Avatar :image="data.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" shape="circle" size="large" />
+                        <Avatar :image="data.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" shape="circle" size="normal" />
                     </template>
                 </Column>
                 <Column field="full_name" header="Full Name" sortable style="min-width: 12rem">

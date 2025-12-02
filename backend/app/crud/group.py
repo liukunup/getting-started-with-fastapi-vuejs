@@ -41,12 +41,16 @@ def update_group(
     group_data = group_update.model_dump(exclude_unset=True)
 
     if group_update.member_ids is not None:
-        members = session.exec(
-            select(User).where(User.id.in_(group_update.member_ids))
-        ).all()
-        db_group.members = list(members)
+        if group_update.member_ids:
+            members = session.exec(
+                select(User).where(User.id.in_(group_update.member_ids))
+            ).all()
+            db_group.members = list(members)
+        else:
+            db_group.members = []
         # Remove member_ids from group_data as it is not a field in Group model
-        del group_data["member_ids"]
+        if "member_ids" in group_data:
+            del group_data["member_ids"]
 
     db_group.sqlmodel_update(group_data)
     session.add(db_group)

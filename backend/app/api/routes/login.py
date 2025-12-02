@@ -5,8 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
-from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
-from app.core.cache import redis_client
+from app.api.deps import CacheDep, CurrentUser, SessionDep, get_current_active_superuser
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -55,15 +54,15 @@ def test_token(current_user: CurrentUser) -> UserPublic:
 
 
 @router.post("/password-recovery/{email}")
-def recover_password(session: SessionDep, email: str) -> Message:
+def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Message:
     """
     Password Recovery
     """
     # Rate limit
-    key = f"pwd_recovery:{email}:{datetime.now().date()}"
-    count = redis_client.incr(key)
+    key = f"password:recovery:{email}:{datetime.now().date()}"
+    count = cache.redis.incr(key)
     if count == 1:
-        redis_client.expire(key, 86400)
+        cache.redis.expire(key, 86400)
     if count > 3:
         raise HTTPException(
             status_code=400, detail="Max password recovery attempts reached for today"

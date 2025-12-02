@@ -68,6 +68,10 @@ const hideDialog = () => {
     submitted.value = false;
 };
 
+const removeMember = (member) => {
+    group.value.members = group.value.members.filter((m) => m.id !== member.id);
+};
+
 const saveGroup = async () => {
     submitted.value = true;
 
@@ -226,10 +230,10 @@ const deleteSelectedGroups = async () => {
                 </div>
                 <div>
                     <label for="members" class="block font-bold mb-3">Members</label>
-                    <MultiSelect id="members" v-model="group.members" :options="users" optionLabel="displayName" dataKey="id" placeholder="Select Members" filter fluid>
+                    <MultiSelect id="members" v-model="group.members" :options="users" optionLabel="displayName" dataKey="id" placeholder="Select Members" filter fluid showClear>
                         <template #value="slotProps">
                             <div class="flex flex-wrap gap-2" v-if="slotProps.value && slotProps.value.length">
-                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="option.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" />
+                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="option.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" removable @remove="removeMember(option)" />
                             </div>
                             <template v-else>
                                 {{ slotProps.placeholder }}

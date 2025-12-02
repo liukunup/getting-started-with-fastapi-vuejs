@@ -1,4 +1,10 @@
-const API_URL = 'http://localhost:8000/api/v1';
+let BASE_API_URL = 'http://localhost:8000/api/v1';
+
+export function setApiUrl(url) {
+    if (url) {
+        BASE_API_URL = url;
+    }
+}
 
 async function request(endpoint, options = {}) {
     const token = localStorage.getItem('token');
@@ -22,7 +28,7 @@ async function request(endpoint, options = {}) {
         headers
     };
 
-    const response = await fetch(`${API_URL}${endpoint}`, config);
+    const response = await fetch(`${BASE_API_URL}${endpoint}`, config);
 
     if (!response.ok) {
         if (response.status === 401) {

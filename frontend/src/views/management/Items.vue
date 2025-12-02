@@ -60,7 +60,7 @@ const saveItem = async () => {
 
     if (item.value.name && item.value.name.trim()) {
         try {
-            const payload = { ...item.value, description: item.value.desc };
+            const payload = { ...item.value };
             if (item.value.id) {
                 await ItemService.updateItem(item.value.id, payload);
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Item Updated', life: 3000 });
@@ -163,7 +163,7 @@ const deleteSelectedItems = async () => {
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="desc" header="Description" sortable style="min-width: 16rem"></Column>
+                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" class="mr-2" />
@@ -192,7 +192,7 @@ const deleteSelectedItems = async () => {
                 </div>
                 <div>
                     <label for="description" class="block font-bold mb-3">Description</label>
-                    <Textarea id="description" v-model="item.desc" required="true" rows="3" cols="20" fluid />
+                    <Textarea id="description" v-model="item.description" required="true" rows="3" cols="20" fluid />
                 </div>
             </div>
 
