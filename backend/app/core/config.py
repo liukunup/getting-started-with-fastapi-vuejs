@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
 
     FRONTEND_HOST: str = "http://localhost:5173"
+    BACKEND_HOST: str = "http://localhost:8000"
 
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 

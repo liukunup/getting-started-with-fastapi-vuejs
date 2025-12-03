@@ -24,6 +24,7 @@ def test_celery_endpoint(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     with patch("app.api.routes.utils.test_celery.delay") as mock_celery:
+        mock_celery.return_value.id = "test_id"
         r = client.post(
             f"{settings.API_V1_STR}/utils/test-celery/",
             headers=superuser_token_headers,

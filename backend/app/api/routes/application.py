@@ -5,6 +5,8 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.config import settings
+from app.core.storage import storage
 from app.crud import application as app_crud
 from app.model.application import (
     Application,
@@ -15,8 +17,15 @@ from app.model.application import (
     ApplicationUpdate,
 )
 from app.model.base import Message
+from app.model.user import User
 
-router = APIRouter(prefix="/applications", tags=["applications"])
+router = APIRouter(tags=["Application"], prefix="/apps")
+
+
+def convert_user_avatar_to_url(user: User) -> None:
+    """Convert avatar path to full MinIO public URL for a user object."""
+    if user and user.avatar and not user.avatar.startswith('http'):
+        user.avatar = storage.get_file_url(user.avatar)
 
 
 @router.get("/", response_model=ApplicationsPublic)
@@ -45,6 +54,10 @@ def read_applications(
     # Execute queries
     total = session.exec(count_statement).one()
     applications = session.exec(data_statement).all()
+    # Convert owner avatar paths to URLs
+    for app in applications:
+        if app.owner:
+            convert_user_avatar_to_url(app.owner)
 
     return ApplicationsPublic(applications=applications, total=total)
 

@@ -1,5 +1,5 @@
 <script setup>
-import { ApplicationService } from '@/service/ApplicationService';
+import { ApplicationService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -20,13 +20,21 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
+// 默认头像URL
+const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
+
+// 获取头像URL，如果没有则返回默认头像
+const getAvatarUrl = (avatarUrl) => {
+    return avatarUrl || defaultAvatar;
+};
+
 onMounted(() => {
     loadApplications();
 });
 
 const loadApplications = () => {
     loading.value = true;
-    ApplicationService.getApplications().then((data) => {
+    ApplicationService.readApplications().then((data) => {
         applications.value = data.applications;
         // applications.value.forEach((app) => {
         //     app.created_at = new Date(app.created_at);
@@ -61,10 +69,10 @@ const saveApplication = async () => {
     if (application.value.name && application.value.name.trim()) {
         try {
             if (application.value.id) {
-                await ApplicationService.updateApplication(application.value.id, application.value);
+                await ApplicationService.updateApplication({ appId: application.value.id, requestBody: application.value });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Application Updated', life: 3000 });
             } else {
-                const response = await ApplicationService.createApplication(application.value);
+                const response = await ApplicationService.createApplication({ requestBody: application.value });
                 if (response.app_key) {
                     newAppKey.value = response.app_key;
                     appKeyDialog.value = true;
@@ -92,7 +100,7 @@ const confirmDeleteApplication = (deleteApp) => {
 
 const deleteApplication = async () => {
     try {
-        await ApplicationService.deleteApplication(application.value.id);
+        await ApplicationService.deleteApplication({ appId: application.value.id });
         deleteApplicationDialog.value = false;
         application.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Application Deleted', life: 3000 });
@@ -112,13 +120,22 @@ const confirmDeleteSelected = () => {
 
 const deleteSelectedApplications = async () => {
     try {
-        await Promise.all(selectedApplications.value.map((val) => ApplicationService.deleteApplication(val.id)));
+        await Promise.all(selectedApplications.value.map((val) => ApplicationService.deleteApplication({ appId: val.id })));
         deleteApplicationsDialog.value = false;
         selectedApplications.value = null;
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Applications Deleted', life: 3000 });
         loadApplications();
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete some applications', life: 3000 });
+    }
+};
+
+const copyAppKey = async () => {
+    try {
+        await navigator.clipboard.writeText(newAppKey.value);
+        toast.add({ severity: 'info', summary: 'Copied', detail: 'App Key copied to clipboard', life: 3000 });
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to copy to clipboard', life: 3000 });
     }
 };
 </script>
@@ -169,7 +186,7 @@ const deleteSelectedApplications = async () => {
                 <Column field="app_id" header="App ID" sortable style="min-width: 12rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="created_at" header="Created At" sortable style="min-width: 10rem">
@@ -205,14 +222,20 @@ const deleteSelectedApplications = async () => {
             </template>
         </Dialog>
 
-        <Dialog v-model:visible="appKeyDialog" :style="{ width: '450px' }" header="Application Created" :modal="true">
+        <Dialog v-model:visible="appKeyDialog" :style="{ width: '650px' }" header="Application Created" :modal="true">
             <div class="flex flex-col gap-4">
                 <div class="text-surface-900 dark:text-surface-0 font-medium mb-2">
-                    Please save your App Key securely. You won't be able to see it again!
+                    Please save your <b>App Key</b> securely. <span class="text-red-500"><b>You won't be able to see it again!</b></span>
                 </div>
                 <div class="flex items-center gap-2">
-                    <InputText :value="newAppKey" readonly class="w-full" />
-                    <Button icon="pi pi-copy" text @click="() => { navigator.clipboard.writeText(newAppKey); toast.add({ severity: 'info', summary: 'Copied', detail: 'App Key copied to clipboard', life: 3000 }); }" />
+                    <Textarea :modelValue="newAppKey" readonly class="w-full" rows="5" />
+                    <Button
+                        icon="pi pi-copy"
+                        text
+                        size="large"
+                        class="!w-16 !h-16 !text-2xl"
+                        @click="copyAppKey"
+                    />
                 </div>
             </div>
             <template #footer>

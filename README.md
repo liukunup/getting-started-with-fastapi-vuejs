@@ -52,3 +52,10 @@ for AI Coding with FastAPI &amp; Vue 3
 2. 实现功能
 3. 代码善后
 4. 生成文档，方便后续ai开发
+
+docker compose 优化
+
+AI对话接入
+权限与动态菜单
+强制登出
+整体测试

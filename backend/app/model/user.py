@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from .application import Application
     from .group import Group
     from .item import Item
+    from .task import Task
 
 
 class RolePermissionLink(SQLModel, table=True):
@@ -94,6 +95,7 @@ class User(UserBase, BaseDataModel, table=True):
 
     items: list["Item"] = Relationship(back_populates="owner")
     applications: list["Application"] = Relationship(back_populates="owner")
+    tasks: list["Task"] = Relationship(back_populates="owner")
     groups: list["Group"] = Relationship(back_populates="owner")
     group_members: list["Group"] = Relationship(
         back_populates="members", link_model=GroupMemberLink

@@ -5,12 +5,16 @@ from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
 from app.main import app
-from app.api.deps import get_db
+from app.api.deps import get_db, get_cache
 from app.core.config import settings
+from app.core.cache import Cache
 from app.model.user import UserCreate
 from app.crud.user import create_user
 # Import all models to ensure they are registered with SQLModel
 from app import model
+
+# Set fixed secret key for tests
+settings.SECRET_KEY = "test_secret_key"
 
 # Use in-memory SQLite for tests
 engine = create_engine(
@@ -37,8 +41,16 @@ def session_fixture():
 def client_fixture(session: Session):
     def get_session_override():
         return session
+    
+    def get_cache_override():
+        mock_cache = MagicMock(spec=Cache)
+        mock_cache.redis = MagicMock()
+        mock_cache.redis.get.return_value = None
+        return mock_cache
 
     app.dependency_overrides[get_db] = get_session_override
+    app.dependency_overrides[get_cache] = get_cache_override
+    
     client = TestClient(app)
     yield client
     app.dependency_overrides.clear()

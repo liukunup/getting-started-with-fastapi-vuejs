@@ -1,5 +1,5 @@
 <script setup>
-import { UserService } from '@/service/UserService';
+import { UserService } from '@/client';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -19,18 +19,37 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
+// 默认头像URL
+const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
+
+// 获取头像URL，如果没有则返回默认头像
+const getAvatarUrl = (avatarUrl) => {
+    return avatarUrl || defaultAvatar;
+};
+
 onMounted(() => {
     loadUsers();
-    UserService.getMe().then((data) => {
+    UserService.readUserMe().then((data) => {
         currentUser.value = data;
     });
 });
 
 const loadUsers = () => {
     loading.value = true;
-    UserService.getUsers()
+    UserService.readUsers()
         .then((data) => {
-            users.value = data.users;
+            // 将当前用户排在最前面
+            if (currentUser.value && data.users) {
+                const sortedUsers = [...data.users];
+                const currentUserIndex = sortedUsers.findIndex((u) => u.id === currentUser.value.id);
+                if (currentUserIndex > 0) {
+                    const [current] = sortedUsers.splice(currentUserIndex, 1);
+                    sortedUsers.unshift(current);
+                }
+                users.value = sortedUsers;
+            } else {
+                users.value = data.users;
+            }
             loading.value = false;
         })
         .catch((error) => {
@@ -49,7 +68,7 @@ const formatDate = (value) => {
 };
 
 const openNew = () => {
-    user.value = {};
+    user.value = { is_active: true };
     submitted.value = false;
     userDialog.value = true;
 };
@@ -62,13 +81,13 @@ const hideDialog = () => {
 const saveUser = async () => {
     submitted.value = true;
 
-    if (user.value.username && user.value.username.trim() && user.value.email && user.value.email.trim()) {
+    if (user.value.email && user.value.email.trim()) {
         try {
             if (user.value.id) {
-                await UserService.updateUser(user.value.id, user.value);
+                await UserService.updateUser({ userId: user.value.id, requestBody: user.value });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'User Updated', life: 3000 });
             } else {
-                await UserService.createUser(user.value);
+                await UserService.createUser({ requestBody: user.value });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'User Created', life: 3000 });
             }
             userDialog.value = false;
@@ -92,7 +111,7 @@ const confirmDeleteUser = (deleteUser) => {
 
 const deleteUser = async () => {
     try {
-        await UserService.deleteUser(user.value.id);
+        await UserService.deleteUser({ userId: user.value.id });
         deleteUserDialog.value = false;
         user.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'User Deleted', life: 3000 });
@@ -112,7 +131,7 @@ const confirmDeleteSelected = () => {
 
 const deleteSelectedUsers = async () => {
     try {
-        await Promise.all(selectedUsers.value.map((val) => UserService.deleteUser(val.id)));
+        await Promise.all(selectedUsers.value.map((val) => UserService.deleteUser({ userId: val.id })));
         deleteUsersDialog.value = false;
         selectedUsers.value = null;
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Users Deleted', life: 3000 });
@@ -166,7 +185,7 @@ const deleteSelectedUsers = async () => {
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column header="Avatar" style="width: 5rem">
                     <template #body="{ data }">
-                        <Avatar :image="data.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" shape="circle" size="normal" />
+                        <Avatar :image="getAvatarUrl(data.avatar)" shape="circle" size="normal" />
                     </template>
                 </Column>
                 <Column field="full_name" header="Full Name" sortable style="min-width: 12rem">
@@ -202,11 +221,6 @@ const deleteSelectedUsers = async () => {
 
         <Dialog v-model:visible="userDialog" :style="{ width: '450px' }" header="User Details" :modal="true">
             <div class="flex flex-col gap-6">
-                <div>
-                    <label for="username" class="block font-bold mb-3">Username</label>
-                    <InputText id="username" v-model.trim="user.username" required="true" autofocus :invalid="submitted && !user.username" fluid />
-                    <small v-if="submitted && !user.username" class="text-red-500">Username is required.</small>
-                </div>
                 <div>
                     <label for="email" class="block font-bold mb-3">Email</label>
                     <InputText id="email" v-model.trim="user.email" required="true" :invalid="submitted && !user.email" fluid />
@@ -261,4 +275,3 @@ const deleteSelectedUsers = async () => {
         </Dialog>
     </div>
 </template>
-

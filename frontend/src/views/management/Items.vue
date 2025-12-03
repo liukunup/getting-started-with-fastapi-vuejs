@@ -1,5 +1,5 @@
 <script setup>
-import { ItemService } from '@/service/ItemService';
+import { ItemService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -18,13 +18,21 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
+// 默认头像URL
+const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
+
+// 获取头像URL，如果没有则返回默认头像
+const getAvatarUrl = (avatarUrl) => {
+    return avatarUrl || defaultAvatar;
+};
+
 onMounted(() => {
     loadItems();
 });
 
 const loadItems = () => {
     loading.value = true;
-    ItemService.getItems().then((data) => {
+    ItemService.readItems().then((data) => {
         items.value = data.items;
         loading.value = false;
     });
@@ -62,10 +70,10 @@ const saveItem = async () => {
         try {
             const payload = { ...item.value };
             if (item.value.id) {
-                await ItemService.updateItem(item.value.id, payload);
+                await ItemService.updateItem({ itemId: item.value.id, requestBody: payload });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Item Updated', life: 3000 });
             } else {
-                await ItemService.createItem(payload);
+                await ItemService.createItem({ requestBody: payload });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Item Created', life: 3000 });
             }
             itemDialog.value = false;
@@ -89,7 +97,7 @@ const confirmDeleteItem = (deleteItem) => {
 
 const deleteItem = async () => {
     try {
-        await ItemService.deleteItem(item.value.id);
+        await ItemService.deleteItem({ itemId: item.value.id });
         deleteItemDialog.value = false;
         item.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Item Deleted', life: 3000 });
@@ -110,7 +118,7 @@ const confirmDeleteSelected = () => {
 const deleteSelectedItems = async () => {
     try {
         // Assuming we process deletions sequentially or in parallel
-        await Promise.all(selectedItems.value.map((val) => ItemService.deleteItem(val.id)));
+        await Promise.all(selectedItems.value.map((val) => ItemService.deleteItem({ itemId: val.id })));
         deleteItemsDialog.value = false;
         selectedItems.value = null;
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Items Deleted', life: 3000 });
@@ -166,7 +174,7 @@ const deleteSelectedItems = async () => {
                 <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="created_at" header="Created At" sortable style="min-width: 12rem">
@@ -228,4 +236,3 @@ const deleteSelectedItems = async () => {
         </Dialog>
     </div>
 </template>
-

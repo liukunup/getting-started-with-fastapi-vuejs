@@ -7,9 +7,9 @@ from pydantic.networks import EmailStr
 from app.api.deps import get_current_active_superuser
 from app.model.base import Message, Task
 from app.utils import generate_test_email, send_email
-from app.worker import long_running_task, test_celery
+from app.api.tasks import test_celery, long_running_task
 
-router = APIRouter(prefix="/utils", tags=["utils"])
+router = APIRouter(tags=["Util"], prefix="/utils")
 
 
 @router.post(

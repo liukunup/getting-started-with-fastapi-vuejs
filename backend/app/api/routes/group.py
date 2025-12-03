@@ -5,6 +5,8 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, or_, select
 
 from app.api.deps import CurrentUser, SessionDep
+from app.core.config import settings
+from app.core.storage import storage
 from app.crud import group as group_crud
 from app.model.base import Message
 from app.model.group import (
@@ -16,7 +18,30 @@ from app.model.group import (
 )
 from app.model.user import User
 
-router = APIRouter(tags=["groups"], prefix="/groups")
+router = APIRouter(tags=["Group"], prefix="/groups")
+
+
+def convert_user_avatar_to_url(user: User) -> None:
+    """Convert avatar path to full MinIO public URL for a user object."""
+    if user and user.avatar and not user.avatar.startswith('http'):
+        user.avatar = storage.get_file_url(user.avatar)
+
+
+def convert_group_avatars_to_urls(group: Group) -> None:
+    """Convert avatar paths to full URLs for all users in a group."""
+    # Convert owner avatar
+    if group.owner:
+        convert_user_avatar_to_url(group.owner)
+    # Convert member avatars
+    if group.members:
+        for member in group.members:
+            convert_user_avatar_to_url(member)
+
+
+def convert_groups_avatars_to_urls(groups: list[Group]) -> None:
+    """Convert avatar paths to full URLs for all users in a list of groups."""
+    for group in groups:
+        convert_group_avatars_to_urls(group)
 
 
 @router.get("/", response_model=GroupsPublic)
@@ -55,6 +80,8 @@ def read_groups(
     # Execute queries
     total = session.exec(count_statement).one()
     groups = session.exec(data_statement).unique().all()
+    # Convert avatar paths to URLs for all users in groups
+    convert_groups_avatars_to_urls(groups)
 
     return GroupsPublic(groups=groups, total=total)
 
@@ -73,6 +100,8 @@ def read_group(
         raise HTTPException(status_code=404, detail="Group not found")
     if not current_user.is_superuser and current_user not in group.users:
         raise HTTPException(status_code=400, detail="Not enough permissions")
+    # Convert avatar paths to URLs
+    convert_group_avatars_to_urls(group)
 
     return group
 
@@ -94,6 +123,8 @@ def create_group(
     group = group_crud.create_group(
         session=session, group_create=group_in, owner_id=current_user.id
     )
+    # Convert avatar paths to URLs
+    convert_group_avatars_to_urls(group)
     return group
 
 
@@ -117,6 +148,8 @@ def update_group(
     group = group_crud.update_group(
         session=session, db_group=group, group_update=group_in
     )
+    # Convert avatar paths to URLs
+    convert_group_avatars_to_urls(group)
     return group
 
 

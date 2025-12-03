@@ -1,6 +1,7 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
+import { OpenAPI } from './client';
 
 import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -9,9 +10,12 @@ import ToastService from 'primevue/toastservice';
 
 import '@/assets/tailwind.css';
 import '@/assets/styles.scss';
-import { setApiUrl } from '@/service/api';
 
-setApiUrl(import.meta.env.VITE_API_URL);
+// 配置 OpenAPI 客户端
+OpenAPI.BASE = import.meta.env.VITE_API_URL;
+OpenAPI.TOKEN = async () => {
+    return localStorage.getItem('token') || '';
+};
 
 const app = createApp(App);
 

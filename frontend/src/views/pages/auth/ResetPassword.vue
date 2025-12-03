@@ -1,6 +1,6 @@
 <script setup>
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { AuthService } from '@/service/AuthService';
+import { LoginService } from '@/client';
 import { useToast } from 'primevue/usetoast';
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
@@ -29,7 +29,12 @@ const onResetPassword = async () => {
     }
     loading.value = true;
     try {
-        await AuthService.resetPassword(token.value, password.value);
+        await LoginService.resetPassword({
+            requestBody: {
+                token: token.value,
+                new_password: password.value
+            }
+        });
         toast.add({ severity: 'success', summary: 'Success', detail: 'Password reset successful. Please login.', life: 3000 });
         router.push('/auth/login');
     } catch (error) {

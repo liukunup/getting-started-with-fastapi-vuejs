@@ -19,7 +19,7 @@ def test_create_user(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email") as mock_send_email:
+    with patch("app.api.routes.user.send_email") as mock_send_email:
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -98,7 +98,7 @@ def test_read_user_by_id(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email"):
+    with patch("app.api.routes.user.send_email"):
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -123,7 +123,7 @@ def test_update_user(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email"):
+    with patch("app.api.routes.user.send_email"):
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -149,7 +149,7 @@ def test_delete_user(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email"):
+    with patch("app.api.routes.user.send_email"):
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -178,7 +178,7 @@ def test_delete_user_me(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email"):
+    with patch("app.api.routes.user.send_email"):
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -218,7 +218,7 @@ def test_force_logout(
     password = random_lower_string()
     data = {"email": username, "password": password, "username": username}
     
-    with patch("app.api.routes.users.send_email"):
+    with patch("app.api.routes.user.send_email"):
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,

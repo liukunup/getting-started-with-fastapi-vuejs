@@ -16,6 +16,7 @@ from app.core.cache import Cache, cache
 from app.core.config import settings
 from app.core.database import engine
 from app.core.storage import Storage, storage
+from app.core.task_queue import TaskManager, distributed_task_queue
 from app.model.application import Application
 from app.model.base import TokenPayload
 from app.model.user import User
@@ -38,10 +39,15 @@ def get_storage() -> Generator[Storage, None, None]:
     yield storage
 
 
+def get_task() -> Generator[TaskManager, None, None]:
+    yield distributed_task_queue
+
+
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 SessionDep = Annotated[Session, Depends(get_db)]
 CacheDep = Annotated[Cache, Depends(get_cache)]
 StorageDep = Annotated[Storage, Depends(get_storage)]
+TaskQueueDep = Annotated[TaskManager, Depends(get_task)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> User:
@@ -55,8 +61,15 @@ def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> U
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
-        user_id = token_data.sub
-        user = session.get(User, user_id)
+        user_id = uuid.UUID(token_data.sub)
+        
+        # Load user with role relationship
+        from sqlmodel import select
+        from sqlalchemy.orm import joinedload
+        
+        statement = select(User).where(User.id == user_id).options(joinedload(User.role))
+        user = session.exec(statement).first()
+        
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"

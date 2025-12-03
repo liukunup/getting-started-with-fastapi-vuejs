@@ -10,14 +10,21 @@ const menu = ref(null);
 const items = ref([
     {
         label: 'Profile',
-        icon: 'pi pi-user'
+        icon: 'pi pi-user',
+        command: async () => {
+            await router.push('/home/profile');
+        }
     },
     {
         label: 'Logout',
         icon: 'pi pi-sign-out',
-        command: () => {
+        command: async () => {
+            // 清除本地存储的token
             localStorage.removeItem('token');
-            router.push('/auth/login');
+            // 跳转到登录页
+            await router.push('/auth/login');
+            // 强制刷新页面以清除所有状态
+            window.location.reload();
         }
     }
 ]);

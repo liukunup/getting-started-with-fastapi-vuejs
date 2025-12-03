@@ -6,14 +6,20 @@ import AppMenuItem from './AppMenuItem.vue';
 const model = ref([
     {
         label: 'Home',
-        items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
+        items: [
+            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+            { label: 'Profile', icon: 'pi pi-fw pi-user', to: '/home/profile' }
+        ]
     },
     {
         label: 'Management',
         items: [
             { label: 'Items', icon: 'pi pi-fw pi-list', to: '/items' },
             { label: 'Groups', icon: 'pi pi-fw pi-users', to: '/groups' },
-            { label: 'Applications', icon: 'pi pi-fw pi-box', to: '/applications' }
+            { label: 'Applications', icon: 'pi pi-fw pi-box', to: '/applications' },
+            { label: 'Tasks', icon: 'pi pi-fw pi-clock', to: '/tasks' },
+            { label: 'Task Executions', icon: 'pi pi-fw pi-history', to: '/task-executions' },
+            { label: 'Celery', icon: 'pi pi-fw pi-chart-line', to: '/celery' }
         ]
     },
     {

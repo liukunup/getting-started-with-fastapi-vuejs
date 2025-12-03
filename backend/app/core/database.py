@@ -64,7 +64,7 @@ def init_db(session: Session) -> None:
             if not item:
                 item_in = ItemCreate(
                     name=item_name,
-                    description=f"This is the description for item {i}",
+                    description=f"This is item {i}",
                 )
                 item = item_crud.create_item(
                     session=session, item_create=item_in, owner_id=user.id
@@ -78,7 +78,7 @@ def init_db(session: Session) -> None:
             if not app:
                 app_in = ApplicationCreate(
                     name=app_name,
-                    description=f"This is the description for application {i}",
+                    description=f"This is app {i}",
                 )
                 app = application_crud.create_application(
                     session=session, application_create=app_in, owner_id=user.id
@@ -93,7 +93,7 @@ def init_db(session: Session) -> None:
             if not group:
                 group_in = GroupCreate(
                     name=group_name,
-                    description=f"This is the description for group {i}",
+                    description=f"This is group {i}",
                     member_ids=member_ids,
                 )
                 group = group_crud.create_group(

@@ -35,8 +35,9 @@ def test_read_applications(
     )
     assert r.status_code == 200
     content = r.json()
-    assert len(content["apps"]) >= 1
+    assert len(content["applications"]) >= 1
     assert content["total"] >= 1
+
 
 def test_read_application(
     client: TestClient, superuser_token_headers: dict[str, str]

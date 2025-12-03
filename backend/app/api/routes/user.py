@@ -1,8 +1,10 @@
 import uuid
 from datetime import datetime, timezone
+from io import BytesIO
 from typing import Any
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import joinedload
 from sqlmodel import func, select
 
@@ -21,6 +23,7 @@ from app.model.user import (
     UpdatePassword,
     User,
     UserCreate,
+    UserPrivate,
     UserPublic,
     UserRegister,
     UsersPrivate,
@@ -29,7 +32,19 @@ from app.model.user import (
 )
 from app.utils import generate_new_account_email, send_email
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter(tags=["User"], prefix="/users")
+
+
+def convert_avatar_to_url(user: User) -> None:
+    """Convert avatar path to full MinIO public URL for a user object."""
+    if user.avatar and not user.avatar.startswith('http'):
+        user.avatar = storage.get_file_url(user.avatar)
+
+
+def convert_avatars_to_urls(users: list[User]) -> None:
+    """Convert avatar paths to full URLs for a list of user objects."""
+    for user in users:
+        convert_avatar_to_url(user)
 
 
 @router.get(
@@ -51,6 +66,8 @@ def read_users(
     # Get users with pagination
     statement = select(User).options(joinedload(User.role)).offset(offset).limit(limit)
     users = session.exec(statement).all()
+    # Convert avatar paths to URLs
+    convert_avatars_to_urls(users)
 
     return UsersPrivate(users=users, total=total)
 
@@ -87,7 +104,7 @@ def create_user(
     return user
 
 
-@router.patch("/me", response_model=UserPublic)
+@router.patch("/me", response_model=UserPrivate)
 def update_user_me(
     *,
     user_in: UserUpdateMe,
@@ -120,6 +137,11 @@ def update_user_me(
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
+    # Ensure role is loaded
+    if current_user.role_id and not current_user.role:
+        session.refresh(current_user, ["role"])
+    # Convert avatar path to backend proxy URL
+    convert_avatar_to_url(current_user)
     return current_user
 
 
@@ -149,13 +171,15 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
-@router.get("/me", response_model=UserPublic)
+@router.get("/me", response_model=UserPrivate)
 def read_user_me(
     current_user: CurrentUser,  # type: ignore
 ) -> Any:
     """
     Get current user.
     """
+    # Convert avatar path to backend proxy URL
+    convert_avatar_to_url(current_user)
     return current_user
 
 
@@ -211,6 +235,7 @@ def read_user_by_id(
     # Allow users to get their own info
     user = session.get(User, user_id)
     if user == current_user:
+        convert_avatar_to_url(user)
         return user
     # Only superusers can get other users' info
     if not current_user.is_superuser:
@@ -218,6 +243,7 @@ def read_user_by_id(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
+    convert_avatar_to_url(user)
     return user
 
 
@@ -311,7 +337,7 @@ def force_logout(
     return Message(message="User forced to logout")
 
 
-@router.post("/me/avatar", response_model=UserPublic)
+@router.post("/me/avatar", response_model=UserPrivate)
 def upload_avatar(
     file: UploadFile = File(...),
     session: SessionDep = None,  # type: ignore
@@ -321,13 +347,57 @@ def upload_avatar(
     Upload avatar for current user.
     """
     file_name = f"{current_user.id}/{file.filename}"
-    url = storage.upload_file(file.file, file_name, file.content_type)
+    object_path = storage.upload_file(file.file, file_name, file.content_type)
 
-    # Update user avatar
-    # Assuming url is just the path, frontend constructs full URL or we return full URL
-    # For now, let's store the path/key
-    current_user.avatar = url
+    # Store the object path in database
+    current_user.avatar = object_path
     session.add(current_user)
     session.commit()
     session.refresh(current_user)
+    # Ensure role is loaded
+    if current_user.role_id and not current_user.role:
+        session.refresh(current_user, ["role"])
+    
+    # Convert avatar path to backend proxy URL for response
+    convert_avatar_to_url(current_user)
+    
     return current_user
+
+
+@router.get("/avatar/{user_id}")
+def get_user_avatar(
+    user_id: uuid.UUID,
+    session: SessionDep,  # type: ignore
+) -> Any:
+    """
+    Get user avatar image by user ID.
+    This endpoint serves as a proxy to the MinIO storage.
+    """
+    user = session.get(User, user_id)
+    if not user or not user.avatar:
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    
+    try:
+        # Get the file from MinIO
+        response = storage.minio.get_object(settings.MINIO_BUCKET_NAME, user.avatar)
+        
+        # Determine content type
+        content_type = "image/jpeg"
+        if user.avatar.lower().endswith('.png'):
+            content_type = "image/png"
+        elif user.avatar.lower().endswith('.gif'):
+            content_type = "image/gif"
+        elif user.avatar.lower().endswith('.webp'):
+            content_type = "image/webp"
+        
+        # Return the image as a streaming response
+        return StreamingResponse(
+            BytesIO(response.read()),
+            media_type=content_type,
+            headers={
+                "Cache-Control": "public, max-age=604800",  # Cache for 7 days
+                "Content-Disposition": f"inline; filename=avatar.jpg"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=f"Failed to retrieve avatar: {str(e)}")

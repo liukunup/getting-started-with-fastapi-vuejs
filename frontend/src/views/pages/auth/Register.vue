@@ -1,6 +1,6 @@
 <script setup>
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { AuthService } from '@/service/AuthService';
+import { LoginService } from '@/client';
 import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,7 +16,13 @@ const loading = ref(false);
 const onRegister = async () => {
     loading.value = true;
     try {
-        await AuthService.register(email.value, password.value, fullName.value);
+        await LoginService.register({
+            requestBody: {
+                email: email.value,
+                password: password.value,
+                full_name: fullName.value
+            }
+        });
         toast.add({ severity: 'success', summary: 'Success', detail: 'Registration successful. Please login.', life: 3000 });
         router.push('/auth/login');
     } catch (error) {

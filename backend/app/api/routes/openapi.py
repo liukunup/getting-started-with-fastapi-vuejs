@@ -3,7 +3,7 @@ from fastapi import APIRouter
 from app.api.deps import CurrentApp
 from app.model.application import ApplicationPublic
 
-router = APIRouter(tags=["openapi"], prefix="/openapi")
+router = APIRouter(tags=["OpenAPI"], prefix="/openapi")
 
 
 @router.get("/test", response_model=ApplicationPublic)

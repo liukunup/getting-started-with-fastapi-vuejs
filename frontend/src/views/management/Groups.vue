@@ -1,6 +1,5 @@
 <script setup>
-import { GroupService } from '@/service/GroupService';
-import { UserService } from '@/service/UserService';
+import { GroupService, UserService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -20,20 +19,28 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
+// 默认头像URL
+const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
+
+// 获取头像URL，如果没有则返回默认头像
+const getAvatarUrl = (avatarUrl) => {
+    return avatarUrl || defaultAvatar;
+};
+
 onMounted(() => {
     loadGroups();
     loadUsers();
 });
 
 const loadUsers = () => {
-    UserService.getUsers().then((data) => {
+    UserService.readUsers().then((data) => {
         users.value = data.users.map((u) => ({ ...u, displayName: u.full_name || u.username }));
     });
 };
 
 const loadGroups = () => {
     loading.value = true;
-    GroupService.getGroups().then((data) => {
+    GroupService.readGroups().then((data) => {
         groups.value = data.groups;
         groups.value.forEach((group) => {
             group.created_at = new Date(group.created_at);
@@ -83,10 +90,10 @@ const saveGroup = async () => {
             };
 
             if (group.value.id) {
-                await GroupService.updateGroup(group.value.id, payload);
+                await GroupService.updateGroup({ groupId: group.value.id, requestBody: payload });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Group Updated', life: 3000 });
             } else {
-                await GroupService.createGroup(payload);
+                await GroupService.createGroup({ requestBody: payload });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Group Created', life: 3000 });
             }
             groupDialog.value = false;
@@ -110,7 +117,7 @@ const confirmDeleteGroup = (deleteGroup) => {
 
 const deleteGroup = async () => {
     try {
-        await GroupService.deleteGroup(group.value.id);
+        await GroupService.deleteGroup({ groupId: group.value.id });
         deleteGroupDialog.value = false;
         group.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Group Deleted', life: 3000 });
@@ -130,7 +137,7 @@ const confirmDeleteSelected = () => {
 
 const deleteSelectedGroups = async () => {
     try {
-        await Promise.all(selectedGroups.value.map((val) => GroupService.deleteGroup(val.id)));
+        await Promise.all(selectedGroups.value.map((val) => GroupService.deleteGroup({ groupId: val.id })));
         deleteGroupsDialog.value = false;
         selectedGroups.value = null;
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Groups Deleted', life: 3000 });
@@ -186,19 +193,13 @@ const deleteSelectedGroups = async () => {
                 <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="user_names" header="Users" sortable style="min-width: 12rem">
                     <template #body="{ data }">
                         <AvatarGroup v-if="data.members && data.members.length > 0">
-                            <Avatar
-                                v-for="member in data.members.slice(0, 4)"
-                                :key="member.id"
-                                :image="member.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'"
-                                size="normal"
-                                shape="circle"
-                            />
+                            <Avatar v-for="member in data.members.slice(0, 4)" :key="member.id" :image="getAvatarUrl(member.avatar)" size="normal" shape="circle" />
                             <Avatar v-if="data.members.length > 4" :label="`+${data.members.length - 4}`" shape="circle" size="normal" :style="{ 'background-color': '#9c27b0', color: '#ffffff' }" />
                         </AvatarGroup>
                     </template>
@@ -233,7 +234,7 @@ const deleteSelectedGroups = async () => {
                     <MultiSelect id="members" v-model="group.members" :options="users" optionLabel="displayName" dataKey="id" placeholder="Select Members" filter fluid showClear>
                         <template #value="slotProps">
                             <div class="flex flex-wrap gap-2" v-if="slotProps.value && slotProps.value.length">
-                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="option.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" removable @remove="removeMember(option)" />
+                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="getAvatarUrl(option.avatar)" removable @remove="removeMember(option)" />
                             </div>
                             <template v-else>
                                 {{ slotProps.placeholder }}
@@ -241,7 +242,7 @@ const deleteSelectedGroups = async () => {
                         </template>
                         <template #option="slotProps">
                             <div class="flex items-center">
-                                <Avatar :image="slotProps.option.avatar || 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png'" shape="circle" size="small" class="mr-2" />
+                                <Avatar :image="getAvatarUrl(slotProps.option.avatar)" shape="circle" size="small" class="mr-2" />
                                 <span>{{ slotProps.option.displayName }}</span>
                             </div>
                         </template>
@@ -281,4 +282,3 @@ const deleteSelectedGroups = async () => {
         </Dialog>
     </div>
 </template>
-

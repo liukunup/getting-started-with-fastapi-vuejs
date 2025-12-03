@@ -1,6 +1,6 @@
 <script setup>
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { AuthService } from '@/service/AuthService';
+import { LoginService } from '@/client';
 import { useToast } from 'primevue/usetoast';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -16,9 +16,16 @@ const loading = ref(false);
 const onLogin = async () => {
     loading.value = true;
     try {
-        const data = await AuthService.login(email.value, password.value);
+        const data = await LoginService.loginAccessToken({
+            formData: {
+                username: email.value,
+                password: password.value
+            }
+        });
+        // 保存token到localStorage
         localStorage.setItem('token', data.access_token);
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
+        // 跳转到首页
         router.push('/');
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: error.message, life: 3000 });

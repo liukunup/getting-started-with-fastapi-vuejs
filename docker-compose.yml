@@ -69,6 +69,8 @@ services:
           sleep 1
         done
         mc mb myminio/${MINIO_BUCKET_NAME:-myapp} || echo 'Bucket already exists'
+        mc anonymous set download myminio/${MINIO_BUCKET_NAME:-myapp}
+        echo 'Bucket public read policy set successfully'
         exit 0
     networks:
       - myapp-network
@@ -264,6 +266,50 @@ services:
     depends_on:
       - postgres
       - redis
+
+  flower:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    build:
+      context: ./backend
+    networks:
+      - myapp-network
+    command: celery -A app.worker flower --port=5555
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    environment:
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
+      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
+      - DATABASE_HOST=${DATABASE_HOST:-postgres}
+      - DATABASE_PORT=${DATABASE_PORT:-5432}
+      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
+      - DATABASE_NAME=${DATABASE_NAME:-myapp}
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
+      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
+      - MINIO_SECURE=${MINIO_SECURE:-False}
+    depends_on:
+      - postgres
+      - redis
+      - worker
 
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'

@@ -12,7 +12,7 @@ class PrivateUserCreate(BaseModel):
     full_name: str | None = None
 
 
-router = APIRouter(tags=["private"], prefix="/private")
+router = APIRouter(tags=["Private"], prefix="/private")
 
 
 @router.post("/users/", response_model=UserPrivate)

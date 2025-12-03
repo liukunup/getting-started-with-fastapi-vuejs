@@ -103,6 +103,16 @@ const router = createRouter({
                     component: () => import('@/views/management/Items.vue')
                 },
                 {
+                    path: '/tasks',
+                    name: 'tasks',
+                    component: () => import('@/views/management/Tasks.vue')
+                },
+                {
+                    path: '/task-executions',
+                    name: 'taskExecutions',
+                    component: () => import('@/views/management/TaskExecutions.vue')
+                },
+                {
                     path: '/groups',
                     name: 'groups',
                     component: () => import('@/views/management/Groups.vue')
@@ -118,9 +128,19 @@ const router = createRouter({
                     component: () => import('@/views/admin/Users.vue')
                 },
                 {
+                    path: '/celery',
+                    name: 'celery',
+                    component: () => import('@/views/admin/Celery.vue')
+                },
+                {
                     path: '/settings',
                     name: 'settings',
                     component: () => import('@/views/admin/Settings.vue')
+                },
+                {
+                    path: '/home/profile',
+                    name: 'profile',
+                    component: () => import('@/views/home/Profile.vue')
                 },
                 {
                     path: '/pages/empty',
