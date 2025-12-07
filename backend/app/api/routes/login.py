@@ -1,17 +1,17 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app import crud
 from app.api.deps import CacheDep, CurrentUser, SessionDep, get_current_active_superuser
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
     get_password_hash,
 )
-from app.crud import user as user_crud
 from app.model.base import Message, NewPassword, Token
 from app.model.user import UserPublic, UserRegister
 from app.utils import (
@@ -32,7 +32,7 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = user_crud.authenticate(
+    user = crud.authenticate(
         session=session, username=form_data.username, password=form_data.password
     )
     if not user:
@@ -59,7 +59,7 @@ def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Messag
     Password Recovery
     """
     # Rate limit
-    key = f"password:recovery:{email}:{datetime.now().date()}"
+    key = f"pwd:recovery:{email}:{datetime.now(timezone.utc).date()}"
     count = cache.redis.incr(key)
     if count == 1:
         cache.redis.expire(key, 86400)
@@ -68,7 +68,8 @@ def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Messag
             status_code=400, detail="Max password recovery attempts reached for today"
         )
 
-    user = user_crud.get_user_by_email(session=session, email=email)
+    # Send email
+    user = crud.get_user_by_email(session=session, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -83,6 +84,7 @@ def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Messag
         subject=email_data.subject,
         html_content=email_data.html_content,
     )
+
     return Message(message="Password recovery email sent")
 
 
@@ -91,10 +93,13 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     """
     Reset password
     """
+    # Verify token
     email = verify_password_reset_token(token=body.token)
     if not email:
         raise HTTPException(status_code=400, detail="Invalid token")
-    user = user_crud.get_user_by_email(session=session, email=email)
+
+    # Update password
+    user = crud.get_user_by_email(session=session, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -104,8 +109,11 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
         raise HTTPException(status_code=400, detail="Inactive user")
     hashed_password = get_password_hash(password=body.new_password)
     user.hashed_password = hashed_password
+
+    # Save to database
     session.add(user)
     session.commit()
+
     return Message(message="Password updated successfully")
 
 
@@ -118,7 +126,7 @@ def recover_password_html_content(session: SessionDep, email: str) -> Any:
     """
     HTML Content for Password Recovery
     """
-    user = user_crud.get_user_by_email(session=session, email=email)
+    user = crud.get_user_by_email(session=session, email=email)
     if not user:
         raise HTTPException(
             status_code=404,
@@ -138,12 +146,12 @@ def register(session: SessionDep, user_in: UserRegister) -> UserPublic:
     """
     Register a new user
     """
-    user = user_crud.get_user_by_email(session=session, email=user_in.email)
+    user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
             status_code=400,
             detail="The user with this email already exists in the system",
         )
     user_create = UserRegister.model_validate(user_in)
-    user = user_crud.create_user(session=session, user_create=user_create)
+    user = crud.create_user(session=session, user_create=user_create)
     return user

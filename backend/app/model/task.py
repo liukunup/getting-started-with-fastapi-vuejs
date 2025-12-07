@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 from sqlalchemy import Column, String
 from sqlmodel import Field, Relationship, SQLModel
 
-from .base import BaseDataModel
+from .base import BaseDataModel, DateTime
 from .user import UserPublic
 
 if TYPE_CHECKING:
@@ -33,31 +33,36 @@ class TaskStatus(str, Enum):
     """任务状态"""
 
     PENDING = "pending"  # 等待中
+    STARTED = "started"  # 已开始
     RUNNING = "running"  # 运行中
     SUCCESS = "success"  # 成功
     FAILED = "failed"  # 失败
-    CANCELED = "canceled"  # 已取消
+    REVOKED = "revoked"  # 已撤销
     DISABLED = "disabled"  # 已禁用
 
 
 class TaskBase(SQLModel):
     name: str = Field(max_length=255, nullable=False, index=True)
     description: str | None = Field(default=None, max_length=512)
-    task_type: TaskType = Field(default=TaskType.ASYNC, sa_column=Column(String(20)))
+    task_type: TaskType = Field(
+        default=TaskType.ASYNC, sa_column=Column(String(20), nullable=False)
+    )
 
     # Celery任务相关
     celery_task_name: str = Field(
         max_length=255, nullable=False
     )  # Celery任务名称，如 app.api.tasks.demo_async_task
-    task_args: str | None = Field(default=None)  # JSON格式的任务参数
-    task_kwargs: str | None = Field(default=None)  # JSON格式的任务关键字参数
+    celery_task_args: str | None = Field(default=None)  # JSON格式的任务参数
+    celery_task_kwargs: str | None = Field(default=None)  # JSON格式的任务关键字参数
 
     # 定时配置
     scheduled_time: datetime | None = Field(default=None)  # 定时执行时间
-    
+
     # 周期任务调度配置
-    periodic_schedule_type: PeriodicScheduleType | None = Field(default=None, sa_column=Column(String(20), nullable=True))  # 周期调度类型
-    
+    periodic_schedule_type: PeriodicScheduleType | None = Field(
+        default=None, sa_column=Column(String(20), nullable=True)
+    )  # 周期调度类型
+
     # Crontab配置
     crontab_minute: str | None = Field(default="*", max_length=64)  # 分钟 (0-59)
     crontab_hour: str | None = Field(default="*", max_length=64)  # 小时 (0-23)
@@ -66,7 +71,7 @@ class TaskBase(SQLModel):
     )  # 星期 (0-6, 0为周日)
     crontab_day_of_month: str | None = Field(default="*", max_length=64)  # 日期 (1-31)
     crontab_month_of_year: str | None = Field(default="*", max_length=64)  # 月份 (1-12)
-    
+
     # Interval配置
     interval_seconds: int | None = Field(default=None)  # 间隔秒数
     interval_minutes: int | None = Field(default=None)  # 间隔分钟数
@@ -94,8 +99,8 @@ class TaskUpdate(SQLModel):
     description: str | None = None
     task_type: TaskType | None = None
     celery_task_name: str | None = None
-    task_args: str | None = None
-    task_kwargs: str | None = None
+    celery_task_args: str | None = None
+    celery_task_kwargs: str | None = None
     scheduled_time: datetime | None = None
     periodic_schedule_type: PeriodicScheduleType | None = None
     crontab_minute: str | None = None
@@ -109,6 +114,9 @@ class TaskUpdate(SQLModel):
     interval_days: int | None = None
     status: TaskStatus | None = None
     enabled: bool | None = None
+    last_run_time: datetime | None = None
+    next_run_time: datetime | None = None
+    celery_task_id: str | None = None
     owner_id: uuid.UUID | None = None
 
 
@@ -129,9 +137,9 @@ class TaskPublic(SQLModel):
     description: str | None = None
     task_type: TaskType
     celery_task_name: str
-    task_args: str | None = None
-    task_kwargs: str | None = None
-    scheduled_time: datetime | None = None
+    celery_task_args: str | None = None
+    celery_task_kwargs: str | None = None
+    scheduled_time: DateTime | None = None
     periodic_schedule_type: PeriodicScheduleType | None = None
     crontab_minute: str | None = None
     crontab_hour: str | None = None
@@ -144,12 +152,12 @@ class TaskPublic(SQLModel):
     interval_days: int | None = None
     status: TaskStatus
     enabled: bool
-    last_run_time: datetime | None = None
-    next_run_time: datetime | None = None
+    last_run_time: DateTime | None = None
+    next_run_time: DateTime | None = None
     celery_task_id: str | None = None
     owner: UserPublic | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    created_at: DateTime | None = None
+    updated_at: DateTime | None = None
 
 
 class TasksPublic(SQLModel):

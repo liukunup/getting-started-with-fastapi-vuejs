@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .base import BaseDataModel
+from .base import BaseDataModel, DateTime
 from .user import UserPublic
 
 if TYPE_CHECKING:
@@ -37,8 +36,8 @@ class ItemPublic(SQLModel):
     name: str
     description: str | None = None
     owner: UserPublic | None = None
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    created_at: DateTime | None = None
+    updated_at: DateTime | None = None
 
 
 class ItemsPublic(SQLModel):

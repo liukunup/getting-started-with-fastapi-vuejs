@@ -6,17 +6,19 @@ from collections.abc import Generator
 from typing import Annotated
 
 import jwt
+from celery import Celery
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
+from app.celery.celery import celery_app
 from app.core import security
 from app.core.cache import Cache, cache
 from app.core.config import settings
 from app.core.database import engine
 from app.core.storage import Storage, storage
-from app.core.task_queue import TaskManager, distributed_task_queue
 from app.model.application import Application
 from app.model.base import TokenPayload
 from app.model.user import User
@@ -39,37 +41,35 @@ def get_storage() -> Generator[Storage, None, None]:
     yield storage
 
 
-def get_task() -> Generator[TaskManager, None, None]:
-    yield distributed_task_queue
+def get_celery_app() -> Generator[Celery, None, None]:
+    yield celery_app
 
 
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 SessionDep = Annotated[Session, Depends(get_db)]
 CacheDep = Annotated[Cache, Depends(get_cache)]
 StorageDep = Annotated[Storage, Depends(get_storage)]
-TaskQueueDep = Annotated[TaskManager, Depends(get_task)]
+CeleryDep = Annotated[Celery, Depends(get_celery_app)]
 
 
 def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> User:
-    if cache.redis.get(f"token:blacklist:{token}"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Token has been revoked",
-        )
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
         user_id = uuid.UUID(token_data.sub)
-        
-        # Load user with role relationship
-        from sqlmodel import select
-        from sqlalchemy.orm import joinedload
-        
-        statement = select(User).where(User.id == user_id).options(joinedload(User.role))
+
+        if cache.redis.get(f"blacklist:user:{user_id}"):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="User forced logout"
+            )
+
+        statement = (
+            select(User).where(User.id == user_id).options(joinedload(User.role))
+        )
         user = session.exec(statement).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"

@@ -5,9 +5,6 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, or_, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.config import settings
-from app.core.storage import storage
-from app.crud import group as group_crud
 from app.model.base import Message
 from app.model.group import (
     Group,
@@ -21,48 +18,22 @@ from app.model.user import User
 router = APIRouter(tags=["Group"], prefix="/groups")
 
 
-def convert_user_avatar_to_url(user: User) -> None:
-    """Convert avatar path to full MinIO public URL for a user object."""
-    if user and user.avatar and not user.avatar.startswith('http'):
-        user.avatar = storage.get_file_url(user.avatar)
-
-
-def convert_group_avatars_to_urls(group: Group) -> None:
-    """Convert avatar paths to full URLs for all users in a group."""
-    # Convert owner avatar
-    if group.owner:
-        convert_user_avatar_to_url(group.owner)
-    # Convert member avatars
-    if group.members:
-        for member in group.members:
-            convert_user_avatar_to_url(member)
-
-
-def convert_groups_avatars_to_urls(groups: list[Group]) -> None:
-    """Convert avatar paths to full URLs for all users in a list of groups."""
-    for group in groups:
-        convert_group_avatars_to_urls(group)
-
-
 @router.get("/", response_model=GroupsPublic)
 def read_groups(
-    session: SessionDep,
-    current_user: CurrentUser,
-    skip: int = 0,
-    limit: int = 100,
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> GroupsPublic:
     """
     Retrieve groups.
     """
-    # Get total count
+    # Build queries for count and data
     count_statement = select(func.count()).select_from(Group)
-    # Get groups with pagination
     data_statement = (
         select(Group)
         .options(joinedload(Group.owner), joinedload(Group.members))
         .offset(skip)
         .limit(limit)
     )
+
     # Non-superusers can only see their own groups
     if not current_user.is_superuser:
         count_statement = count_statement.where(
@@ -77,41 +48,34 @@ def read_groups(
                 Group.owner_id == current_user.id,
             )
         )
-    # Execute queries
+
+    # Execute queries and return results
     total = session.exec(count_statement).one()
     groups = session.exec(data_statement).unique().all()
-    # Convert avatar paths to URLs for all users in groups
-    convert_groups_avatars_to_urls(groups)
 
     return GroupsPublic(groups=groups, total=total)
 
 
 @router.get("/{group_id}", response_model=GroupPublic)
 def read_group(
-    session: SessionDep,
-    current_user: CurrentUser,
-    group_id: uuid.UUID,
+    session: SessionDep, current_user: CurrentUser, group_id: uuid.UUID
 ) -> GroupPublic:
     """
     Get group by ID.
     """
-    group = group_crud.get_group(session=session, group_id=group_id)
+    # Fetch group
+    group = session.get(Group, group_id)
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
     if not current_user.is_superuser and current_user not in group.users:
         raise HTTPException(status_code=400, detail="Not enough permissions")
-    # Convert avatar paths to URLs
-    convert_group_avatars_to_urls(group)
 
     return group
 
 
 @router.post("/", response_model=GroupPublic)
 def create_group(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    group_in: GroupCreate,
+    *, session: SessionDep, current_user: CurrentUser, group_in: GroupCreate
 ) -> GroupPublic:
     """
     Create new group.
@@ -120,11 +84,19 @@ def create_group(
     if current_user.id not in group_in.member_ids:
         group_in.member_ids.append(current_user.id)
 
-    group = group_crud.create_group(
-        session=session, group_create=group_in, owner_id=current_user.id
-    )
-    # Convert avatar paths to URLs
-    convert_group_avatars_to_urls(group)
+    # Create group
+    group = Group.model_validate(group_in, update={"owner_id": current_user.id})
+    if group_in.member_ids:
+        members = session.exec(
+            select(User).where(User.id.in_(group_in.member_ids))
+        ).all()
+        group.members = list(members)
+
+    # Save to database
+    session.add(group)
+    session.commit()
+    session.refresh(group)
+
     return group
 
 
@@ -139,35 +111,54 @@ def update_group(
     """
     Update a group.
     """
-    group = group_crud.get_group(session=session, group_id=group_id)
+    # Fetch group
+    group = session.get(Group, group_id)
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
     if not current_user.is_superuser and (group.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    group = group_crud.update_group(
-        session=session, db_group=group, group_update=group_in
-    )
-    # Convert avatar paths to URLs
-    convert_group_avatars_to_urls(group)
+    # Update fields
+    data = group_in.model_dump(exclude_unset=True)
+    # Handle member_ids separately
+    if group_in.member_ids is not None:
+        if group_in.member_ids:
+            members = session.exec(
+                select(User).where(User.id.in_(group_in.member_ids))
+            ).all()
+            group.members = list(members)
+        else:
+            group.members = []
+        # Remove member_ids from group_data as it is not a field in Group model
+        if "member_ids" in data:
+            del data["member_ids"]
+    # Update other fields
+    group.sqlmodel_update(data)
+
+    # Save to database
+    session.add(group)
+    session.commit()
+    session.refresh(group)
+
     return group
 
 
 @router.delete("/{group_id}", response_model=Message)
 def delete_group(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    group_id: uuid.UUID,
+    *, session: SessionDep, current_user: CurrentUser, group_id: uuid.UUID
 ) -> Message:
     """
     Delete a group.
     """
-    group = group_crud.get_group(session=session, group_id=group_id)
+    # Fetch group
+    group = session.get(Group, group_id)
     if not group:
         raise HTTPException(status_code=404, detail="Group not found")
     if not current_user.is_superuser and (group.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    group_crud.delete_group(session=session, db_group=group)
+    # Delete group
+    session.delete(group)
+    session.commit()
+
     return Message(message="Group deleted successfully")

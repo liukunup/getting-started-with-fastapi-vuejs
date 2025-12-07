@@ -3,13 +3,13 @@ from typing import Any
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException
 
-from app.api.deps import CurrentUser, TaskQueueDep
+from app.api.deps import CeleryDep, CurrentUser
 
 router = APIRouter(prefix="/celery", tags=["celery"])
 
 
 @router.get("/workers")
-def get_workers(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有活跃的Celery Worker信息
     """
@@ -18,7 +18,7 @@ def get_workers(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
 
     try:
         # 获取活跃的workers
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
         active_workers = inspect.active()
         registered_tasks = inspect.registered()
         stats = inspect.stats()
@@ -47,7 +47,7 @@ def get_workers(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
 
 
 @router.get("/tasks/active")
-def get_active_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_active_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有活跃的任务
     """
@@ -55,7 +55,7 @@ def get_active_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
         active_tasks = inspect.active()
 
         tasks_list = []
@@ -81,7 +81,7 @@ def get_active_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any
 
 
 @router.get("/tasks/scheduled")
-def get_scheduled_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_scheduled_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有计划任务
     """
@@ -89,7 +89,7 @@ def get_scheduled_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> 
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
         scheduled_tasks = inspect.scheduled()
 
         tasks_list = []
@@ -115,7 +115,7 @@ def get_scheduled_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> 
 
 
 @router.get("/tasks/reserved")
-def get_reserved_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_reserved_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有保留任务
     """
@@ -123,7 +123,7 @@ def get_reserved_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> A
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
         reserved_tasks = inspect.reserved()
 
         tasks_list = []
@@ -148,7 +148,9 @@ def get_reserved_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> A
 
 
 @router.get("/tasks/{task_id}")
-def get_task_status(task_id: str, current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_task_status(
+    task_id: str, current_user: CurrentUser, celery_app: CeleryDep
+) -> Any:
     """
     获取指定任务的状态
     """
@@ -156,7 +158,7 @@ def get_task_status(task_id: str, current_user: CurrentUser, task_queue: TaskQue
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        task_result = AsyncResult(task_id, app=task_queue.celery)
+        task_result = AsyncResult(task_id, app=celery_app)
 
         result = {
             "task_id": task_id,
@@ -179,7 +181,7 @@ def get_task_status(task_id: str, current_user: CurrentUser, task_queue: TaskQue
 
 
 @router.post("/tasks/{task_id}/revoke")
-def revoke_task(task_id: str, current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def revoke_task(task_id: str, current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     撤销指定的任务
     """
@@ -187,14 +189,14 @@ def revoke_task(task_id: str, current_user: CurrentUser, task_queue: TaskQueueDe
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        task_queue.celery.control.revoke(task_id, terminate=True)
+        celery_app.control.revoke(task_id, terminate=True)
         return {"message": f"Task {task_id} has been revoked"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to revoke task: {str(e)}")
 
 
 @router.get("/stats")
-def get_celery_stats(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取Celery统计信息
     """
@@ -202,7 +204,7 @@ def get_celery_stats(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
 
         # 获取各种任务数量
         active = inspect.active() or {}
@@ -231,12 +233,12 @@ def get_celery_stats(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any
         }
     except Exception as e:
         raise HTTPException(
-            status_code=500, detail=f"Failed to get celery stats: {str(e)}"
+            status_code=500, detail=f"Failed to get celery_app stats: {str(e)}"
         )
 
 
 @router.get("/registered-tasks")
-def get_registered_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) -> Any:
+def get_registered_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有已注册的任务类型
     """
@@ -244,7 +246,7 @@ def get_registered_tasks(current_user: CurrentUser, task_queue: TaskQueueDep) ->
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = task_queue.celery.control.inspect()
+        inspect = celery_app.control.inspect()
         registered = inspect.registered()
 
         all_tasks = set()

@@ -36,8 +36,8 @@ const taskTypes = [
 
 // 周期调度类型选项
 const periodicScheduleTypes = [
-    { label: 'Crontab表达式', value: 'crontab' },
-    { label: '固定间隔', value: 'interval' }
+    { label: 'Crontab', value: 'crontab' },
+    { label: 'Interval', value: 'interval' }
 ];
 
 // 预定义的Celery任务
@@ -54,10 +54,8 @@ const loadRegisteredTasks = async () => {
         console.error('Failed to load registered tasks:', error);
         // 使用默认任务列表
         predefinedTasks.value = [
-            { label: 'app.api.tasks.demo_async_task', value: 'app.api.tasks.demo_async_task' },
-            { label: 'app.api.tasks.demo_periodic_task', value: 'app.api.tasks.demo_periodic_task' },
-            { label: 'app.api.tasks.demo_scheduled_task', value: 'app.api.tasks.demo_scheduled_task' },
-            { label: 'app.api.tasks.demo_dynamic_task', value: 'app.api.tasks.demo_dynamic_task' }
+            { label: 'demo_task', value: 'demo_task' },
+            { label: 'demo_dynamic_task', value: 'demo_dynamic_task' }
         ];
     } finally {
         loadingTasks.value = false;
@@ -67,10 +65,11 @@ const loadRegisteredTasks = async () => {
 // 任务状态
 const taskStatuses = [
     { label: '等待中', value: 'pending', severity: 'info' },
+    { label: '已开始', value: 'started', severity: 'warning' },
     { label: '运行中', value: 'running', severity: 'warning' },
     { label: '成功', value: 'success', severity: 'success' },
     { label: '失败', value: 'failed', severity: 'danger' },
-    { label: '已取消', value: 'canceled', severity: 'secondary' },
+    { label: '已撤销', value: 'revoked', severity: 'secondary' },
     { label: '已禁用', value: 'disabled', severity: 'secondary' }
 ];
 
@@ -78,10 +77,11 @@ const taskStatuses = [
 const executionStatuses = [
     { label: '等待中', value: 'pending', severity: 'info' },
     { label: '已开始', value: 'started', severity: 'warning' },
+    { label: '运行中', value: 'running', severity: 'warning' },
     { label: '成功', value: 'success', severity: 'success' },
-    { label: '失败', value: 'failure', severity: 'danger' },
-    { label: '重试', value: 'retry', severity: 'warning' },
-    { label: '已撤销', value: 'revoked', severity: 'secondary' }
+    { label: '失败', value: 'failed', severity: 'danger' },
+    { label: '已撤销', value: 'revoked', severity: 'secondary' },
+    { label: '已禁用', value: 'disabled', severity: 'secondary' }
 ];
 
 // 计算属性：是否显示定时配置
@@ -139,13 +139,15 @@ const loadTasks = () => {
 
 const formatDate = (value) => {
     if (!value) return '';
-    return new Date(value).toLocaleString('zh-CN', {
+    const dateStr = value.endsWith('Z') || value.includes('+') ? value : value + 'Z';
+    return new Date(dateStr).toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        second: '2-digit'
+        second: '2-digit',
+        hour12: false
     });
 };
 
@@ -162,7 +164,7 @@ const getStatusSeverity = (status) => {
 const openNew = () => {
     task.value = {
         task_type: 'async',
-        celery_task_name: 'app.api.tasks.demo_async_task',
+        celery_task_name: '',
         task_args: '[]',
         task_kwargs: '{}',
         enabled: true,
@@ -485,9 +487,9 @@ const setNow = () => {
                         <Select id="task_type" v-model="task.task_type" :options="taskTypes" optionLabel="label" optionValue="value" placeholder="Select Type" fluid />
                     </div>
 
-                    <div>
+                    <div class="flex flex-col">
                         <label class="block font-bold mb-3">Enable Task</label>
-                        <div class="flex items-center">
+                        <div class="flex items-center flex-1">
                             <Checkbox id="enabled" v-model="task.enabled" :binary="true" />
                             <label for="enabled" class="ml-2">{{ task.enabled ? 'Enabled' : 'Disabled' }}</label>
                         </div>
@@ -497,18 +499,6 @@ const setNow = () => {
                 <div>
                     <label for="celery_task_name" class="block font-bold mb-3">Celery Task Name</label>
                     <Select id="celery_task_name" v-model="task.celery_task_name" :options="predefinedTasks" optionLabel="label" optionValue="value" placeholder="Select or enter task name" editable fluid />
-                </div>
-
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label for="task_args" class="block font-bold mb-3">Task Args (JSON Array)</label>
-                        <InputText id="task_args" v-model="task.task_args" placeholder='["arg1", "arg2"]' fluid />
-                    </div>
-
-                    <div>
-                        <label for="task_kwargs" class="block font-bold mb-3">Task Kwargs (JSON Object)</label>
-                        <InputText id="task_kwargs" v-model="task.task_kwargs" placeholder='{"key": "value"}' fluid />
-                    </div>
                 </div>
 
                 <div v-if="showScheduledTime">
@@ -529,7 +519,7 @@ const setNow = () => {
                                 :manualInput="true"
                             />
                         </div>
-                        <Button label="此刻" icon="pi pi-clock" @click="setNow" outlined severity="secondary" v-tooltip="'设置为当前时间'" />
+                        <Button label="此刻" icon="pi pi-clock" @click="setNow" outlined severity="info" v-tooltip="'设置为当前时间'" />
                     </div>
                     <small class="text-gray-500 mt-1 block"> 支持选择年月日时分秒，可直接粘贴日期时间字符串（如：2024-12-02 14:30:00） </small>
                 </div>
@@ -541,13 +531,12 @@ const setNow = () => {
                 </div>
 
                 <div v-if="showCrontab" class="border p-4 rounded">
-                    <h4 class="font-bold mb-3">Crontab Configuration</h4>
                     <div class="grid grid-cols-5 gap-2 text-xs mb-2">
                         <span class="text-center font-semibold">Minute</span>
                         <span class="text-center font-semibold">Hour</span>
-                        <span class="text-center font-semibold">Day(M)</span>
-                        <span class="text-center font-semibold">Month</span>
-                        <span class="text-center font-semibold">Day(W)</span>
+                        <span class="text-center font-semibold">Day of Month</span>
+                        <span class="text-center font-semibold">Month of Year</span>
+                        <span class="text-center font-semibold">Day of Week</span>
                     </div>
                     <div class="grid grid-cols-5 gap-2">
                         <InputText v-model="task.crontab_minute" placeholder="*" />
@@ -561,7 +550,6 @@ const setNow = () => {
                 </div>
 
                 <div v-if="showInterval" class="border p-4 rounded">
-                    <h4 class="font-bold mb-3">Interval Configuration</h4>
                     <div class="grid grid-cols-4 gap-4">
                         <div>
                             <label for="interval_days" class="block text-sm font-semibold mb-2">天</label>
@@ -581,6 +569,16 @@ const setNow = () => {
                         </div>
                     </div>
                     <small class="text-gray-500 mt-2 block">至少设置一个时间间隔值（例如：每5分钟、每1小时、每2天等）</small>
+                </div>
+
+                <div>
+                    <label for="task_args" class="block font-bold mb-3">Task Args (JSON Array)</label>
+                    <Textarea id="task_args" v-model="task.task_args" placeholder='["arg1", "arg2"]' rows="3" fluid />
+                </div>
+
+                <div>
+                    <label for="task_kwargs" class="block font-bold mb-3">Task Kwargs (JSON Object)</label>
+                    <Textarea id="task_kwargs" v-model="task.task_kwargs" placeholder='{"key": "value"}' rows="3" fluid />
                 </div>
             </div>
 

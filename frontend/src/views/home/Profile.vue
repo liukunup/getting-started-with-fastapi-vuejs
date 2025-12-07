@@ -32,14 +32,6 @@ const editForm = ref({
     email: ''
 });
 
-// 默认头像URL
-const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
-
-// 计算头像URL
-const avatarUrl = computed(() => {
-    return user.value.avatar || defaultAvatar;
-});
-
 // 计算头像初始字母
 const avatarLabel = computed(() => {
     if (user.value.avatar) return '';

@@ -1,97 +1,99 @@
 networks:
-  myapp-network:
-    name: ${NETWORK_NAME:-myapp-network}
-    driver: bridge
+  traefik-public:
+    external: true
 
 volumes:
   postgres_data:
   redis_data:
-  minio_data:
+  rustfs_data:
 
 services:
 
   postgres:
-    image: postgres:17
+    image: postgres:latest
     container_name: postgres
-    ports:
-      - "5432:5432"
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DATABASE_USERNAME:-root}
+      - POSTGRES_USER=${DATABASE_USER:-myapp}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-changethis}
       - POSTGRES_DB=${DATABASE_NAME:-myapp}
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
-      - myapp-network
+      - traefik-public
+      - default
     healthcheck:
       test: |
         CMD-SHELL
-        pg_isready -U ${DATABASE_USERNAME:-root} -d ${DATABASE_NAME:-myapp}
-      start_period: 15s
+        pg_isready -U ${DATABASE_USER:-myapp} -d ${DATABASE_NAME:-myapp}
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
-  minio:
-    image: minio/minio:latest
-    container_name: minio
-    command: server /data --console-address ":9001"
-    ports:
-      - "9000:9000"
-      - "9001:9001"
+  rustfs:
+    image: rustfs/rustfs:latest
+    container_name: rustfs
+    restart: unless-stopped
     environment:
-      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-changethis}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-admin}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-changethis}
+      RUSTFS_CONSOLE_ENABLE: true
     volumes:
-      - minio_data:/data
+      - rustfs_data:/data
     networks:
-      - myapp-network
+      - traefik-public
+      - default
     healthcheck:
       test: |
-        CMD
-        curl -f http://localhost:9000/minio/health/live
+        CMD-SHELL
+        curl -f http://localhost:9000/health && curl -f http://localhost:9001/health
       interval: 30s
-      timeout: 20s
+      timeout: 10s
       retries: 3
+      start_period: 40s
 
-  minio-init:
+  rustfs-init:
     image: minio/mc:latest
-    container_name: minio-init
+    container_name: rustfs-init
     depends_on:
-      minio:
+      rustfs:
         condition: service_healthy
     entrypoint:
       - /bin/sh
       - -c
       - |
-        until mc alias set myminio http://minio:9000 ${MINIO_ACCESS_KEY:-minioadmin} ${MINIO_SECRET_KEY:-changethis}; do
-          echo 'Waiting for MinIO...'
+        until mc alias set storage http://rustfs:9000 ${STORAGE_ACCESS_KEY:-admin} ${STORAGE_SECRET_KEY:-changethis}; do
+          echo 'Waiting for RustFS...'
           sleep 1
         done
-        mc mb myminio/${MINIO_BUCKET_NAME:-myapp} || echo 'Bucket already exists'
-        mc anonymous set download myminio/${MINIO_BUCKET_NAME:-myapp}
-        echo 'Bucket public read policy set successfully'
+        if mc ls storage/${STORAGE_BUCKET_NAME:-myapp} > /dev/null 2>&1; then
+          echo 'Bucket already exists'
+        else
+          mc mb storage/${STORAGE_BUCKET_NAME:-myapp}
+        fi
         exit 0
     networks:
-      - myapp-network
+      - traefik-public
+      - default
 
   redis:
     image: redis:8.2.1
     container_name: redis
     command: redis-server --requirepass ${REDIS_PASSWORD:-changethis}
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     networks:
-      - myapp-network
+      - traefik-public
+      - default
     healthcheck:
       test: |
         CMD
         redis-cli -a ${REDIS_PASSWORD:-changethis} ping
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
 
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -101,224 +103,241 @@ services:
       postgres:
         condition: service_healthy
         restart: true
-    networks:
-      - myapp-network
     command: bash scripts/prestart.sh
-    env_file:
-      - .env
+    networks:
+      - traefik-public
+      - default
     environment:
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
-      - DATABASE_HOST=${DATABASE_HOST:-postgres}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - DATABASE_NAME=${DATABASE_NAME:-myapp}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
-      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
+      PROJECT_NAME: ${PROJECT_NAME}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
+      SMTP_TLS: ${SMTP_TLS}
+      SMTP_SSL: ${SMTP_SSL}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
+      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
 
-  myapp:
+  frontend:
+    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    networks:
+      - traefik-public
+      - default
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=https://api.${DOMAIN?Variable not set}
+        - NODE_ENV=production
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+      - traefik.http.services.${STACK_NAME?Variable not set}-frontend.loadbalancer.server.port=80
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.rule=Host(`web.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.entrypoints=http
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.rule=Host(`web.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-https.tls.certresolver=le
+
+      # Enable redirection for HTTP and HTTPS
+      - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
+
+  backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    networks:
+      - traefik-public
+      - default
     build:
       context: ./backend
-    networks:
-      - myapp-network
     depends_on:
       postgres:
         condition: service_healthy
         restart: true
       prestart:
         condition: service_completed_successfully
-    env_file:
-      - .env
-    ports:
-      - "8000:8000"
     environment:
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
-      - DATABASE_HOST=${DATABASE_HOST:-postgres}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - DATABASE_NAME=${DATABASE_NAME:-myapp}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
-      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
+      PROJECT_NAME: ${PROJECT_NAME}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
+      SMTP_TLS: ${SMTP_TLS}
+      SMTP_SSL: ${SMTP_SSL}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
+      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/healthz/"]
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+      - traefik.http.services.${STACK_NAME?Variable not set}-backend.loadbalancer.server.port=8000
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.rule=Host(`api.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.entrypoints=http
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.rule=Host(`api.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-https.tls.certresolver=le
+
+      # Enable redirection for HTTP and HTTPS
+      - traefik.http.routers.${STACK_NAME?Variable not set}-backend-http.middlewares=https-redirect
 
   worker:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
       context: ./backend
+    command: celery -A app.celery.celery worker -l info
     networks:
-      - myapp-network
-    command: celery -A app.worker worker -l info
-    env_file:
-      - .env
+      - traefik-public
+      - default
     environment:
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
-      - DATABASE_HOST=${DATABASE_HOST:-postgres}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - DATABASE_NAME=${DATABASE_NAME:-myapp}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
-      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
+      PROJECT_NAME: ${PROJECT_NAME}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
+      SMTP_TLS: ${SMTP_TLS}
+      SMTP_SSL: ${SMTP_SSL}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
+      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
 
   beat:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
       context: ./backend
+    command: celery -A app.celery.celery beat -l info
     networks:
-      - myapp-network
-    command: celery -A app.worker beat -l info
-    env_file:
-      - .env
+      - traefik-public
+      - default
     environment:
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
-      - DATABASE_HOST=${DATABASE_HOST:-postgres}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - DATABASE_NAME=${DATABASE_NAME:-myapp}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
-      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
+      PROJECT_NAME: ${PROJECT_NAME}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SENTRY_DSN: ${SENTRY_DSN}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
+      SMTP_TLS: ${SMTP_TLS}
+      SMTP_SSL: ${SMTP_SSL}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
+      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
     depends_on:
-      - postgres
-      - redis
-
-  flower:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    build:
-      context: ./backend
-    networks:
-      - myapp-network
-    command: celery -A app.worker flower --port=5555
-    ports:
-      - "5555:5555"
-    env_file:
-      - .env
-    environment:
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - PROJECT_NAME=${PROJECT_NAME:-MyApp}
-      - DATABASE_TYPE=${DATABASE_TYPE:-postgres}
-      - DATABASE_HOST=${DATABASE_HOST:-postgres}
-      - DATABASE_PORT=${DATABASE_PORT:-5432}
-      - DATABASE_USERNAME=${DATABASE_USERNAME:-root}
-      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - DATABASE_NAME=${DATABASE_NAME:-myapp}
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_DB_INDEX=${REDIS_DB_INDEX:-0}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-changethis}
-      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-changethis}
-      - MINIO_BUCKET=${MINIO_BUCKET_NAME:-myapp}
-      - MINIO_SECURE=${MINIO_SECURE:-False}
-    depends_on:
-      - postgres
-      - redis
-      - worker
-
-  frontend:
-    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
-    build:
-      context: ./frontend
-      args:
-        - VITE_API_URL=http://localhost:8000/api/v1
-        - NODE_ENV=production
-    ports:
-      - "5173:80"
-    networks:
-      - myapp-network
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully

@@ -5,8 +5,6 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.core.storage import storage
-from app.crud import item as item_crud
 from app.model.base import Message
 from app.model.item import (
     Item,
@@ -15,58 +13,44 @@ from app.model.item import (
     ItemsPublic,
     ItemUpdate,
 )
-from app.model.user import User
 
 router = APIRouter(tags=["Item"], prefix="/items")
 
 
-def convert_user_avatar_to_url(user: User) -> None:
-    """Convert avatar path to full MinIO public URL for a user object."""
-    if user and user.avatar and not user.avatar.startswith('http'):
-        user.avatar = storage.get_file_url(user.avatar)
-
-
 @router.get("/", response_model=ItemsPublic)
 def read_items(
-    session: SessionDep,
-    current_user: CurrentUser,
-    skip: int = 0,
-    limit: int = 100,
+    session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> ItemsPublic:
     """
     Retrieve items.
     """
-    # Get total count
+    # Build queries for count and data
     count_statement = select(func.count()).select_from(Item)
-    # Get items with pagination
     data_statement = (
         select(Item).options(joinedload(Item.owner)).offset(skip).limit(limit)
     )
+
     # Non-superusers can only see their own items
     if not current_user.is_superuser:
         count_statement = count_statement.where(Item.owner_id == current_user.id)
         data_statement = data_statement.where(Item.owner_id == current_user.id)
-    # Execute queries
+
+    # Execute queries and return results
     total = session.exec(count_statement).one()
     items = session.exec(data_statement).all()
-    # Convert owner avatar paths to URLs
-    for item in items:
-        if item.owner:
-            convert_user_avatar_to_url(item.owner)
 
     return ItemsPublic(items=items, total=total)
 
 
 @router.get("/{item_id}", response_model=ItemPublic)
 def read_item(
-    session: SessionDep,
-    current_user: CurrentUser,
-    item_id: uuid.UUID,
+    session: SessionDep, current_user: CurrentUser, item_id: uuid.UUID
 ) -> ItemPublic:
     """
     Get item by ID.
     """
-    item = item_crud.get_item(session=session, item_id=item_id)
+    # Fetch item
+    item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if not current_user.is_superuser and (item.owner_id != current_user.id):
@@ -77,17 +61,19 @@ def read_item(
 
 @router.post("/", response_model=ItemPublic)
 def create_item(
-    *,
-    session: SessionDep,
-    current_user: CurrentUser,
-    item_in: ItemCreate,
+    *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
 ) -> ItemPublic:
     """
     Create new item.
     """
-    item = item_crud.create_item(
-        session=session, item_create=item_in, owner_id=current_user.id
-    )
+    # Create item
+    item = Item.model_validate(item_in, update={"owner_id": current_user.id})
+
+    # Save to database
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+
     return item
 
 
@@ -102,30 +88,41 @@ def update_item(
     """
     Update an item.
     """
-    item = item_crud.get_item(session=session, item_id=item_id)
+    # Fetch item
+    item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if not current_user.is_superuser and (item.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    item = item_crud.update_item(session=session, db_item=item, item_update=item_in)
+    # Update fields
+    data = item_in.model_dump(exclude_unset=True)
+    item.sqlmodel_update(data)
+
+    # Save to database
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+
     return item
 
 
 @router.delete("/{item_id}", response_model=Message)
 def delete_item(
-    session: SessionDep,
-    current_user: CurrentUser,
-    item_id: uuid.UUID,
+    session: SessionDep, current_user: CurrentUser, item_id: uuid.UUID
 ) -> Message:
     """
     Delete an item.
     """
-    item = item_crud.get_item(session=session, item_id=item_id)
+    # Fetch item
+    item = session.get(Item, item_id)
     if not item:
         raise HTTPException(status_code=404, detail="Item not found")
     if not current_user.is_superuser and (item.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
 
-    item_crud.delete_item(session=session, db_item=item)
+    # Delete item
+    session.delete(item)
+    session.commit()
+
     return Message(message="Item deleted successfully")

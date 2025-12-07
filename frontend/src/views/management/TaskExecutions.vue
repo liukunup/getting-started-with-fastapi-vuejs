@@ -130,7 +130,7 @@ const deleteExecutionConfirmed = async () => {
 
 <template>
     <div class="card">
-        <div class="font-semibold text-xl mb-4">Task Execution Records (Total: {{ executions.length }})</div>
+        <div class="font-semibold text-xl mb-4">Task Executions (Total: {{ executions.length }})</div>
         <DataTable
             ref="dt"
             :value="executions"
@@ -174,7 +174,7 @@ const deleteExecutionConfirmed = async () => {
                 </template>
             </Column>
 
-            <Column field="celery_task_id" header="Celery Task ID" sortable style="min-width: 15rem">
+            <Column field="celery_task_id" header="Task ID" sortable style="min-width: 15rem">
                 <template #body="{ data }">
                     <span class="text-xs font-mono">{{ data.celery_task_id }}</span>
                 </template>

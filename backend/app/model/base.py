@@ -1,7 +1,24 @@
 import uuid
 from datetime import datetime, timezone
+from typing import Annotated
 
+from pydantic import PlainSerializer
 from sqlmodel import Field, SQLModel
+
+
+def _utc_serializer(dt: datetime) -> str:
+    """Serialize datetime to UTC ISO 8601 format"""
+    # Return None if datetime is None
+    if dt is None:
+        return None
+    # Ensure datetime is timezone-aware
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    # Convert to ISO 8601 format
+    return dt.isoformat()
+
+
+DateTime = Annotated[datetime, PlainSerializer(_utc_serializer)]
 
 
 class Message(SQLModel):

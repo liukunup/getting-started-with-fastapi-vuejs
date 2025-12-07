@@ -1,10 +1,7 @@
 from sqlmodel import Session, create_engine, select
 
+from app import crud
 from app.core.config import settings
-from app.crud import application as application_crud
-from app.crud import group as group_crud
-from app.crud import item as item_crud
-from app.crud import user as user_crud
 from app.model.application import Application, ApplicationCreate
 from app.model.group import Group, GroupCreate
 from app.model.item import Item, ItemCreate
@@ -41,12 +38,12 @@ def init_db(session: Session) -> None:
             password=settings.FIRST_SUPERUSER_PASSWORD,
             is_superuser=True,
         )
-        user = user_crud.create_user(session=session, user_create=user_in)
+        user = crud.create_user(session=session, user_create=user_in)
 
-    # Create initial data for local environment
+    # Create initial data for dev & testing
     if settings.ENVIRONMENT == "local":
         for i in range(1, 52):
-            # Create users for local testing
+            # Create users
             email = f"user{i}@example.com"
             user = session.exec(select(User).where(User.email == email)).first()
             if not user:
@@ -56,9 +53,9 @@ def init_db(session: Session) -> None:
                     full_name=f"User {i}",
                     is_superuser=False,
                 )
-                user = user_crud.create_user(session=session, user_create=user_in)
+                user = crud.create_user(session=session, user_create=user_in)
 
-            # Create items for local testing
+            # Create items
             item_name = f"Item {i}"
             item = session.exec(select(Item).where(Item.name == item_name)).first()
             if not item:
@@ -66,12 +63,13 @@ def init_db(session: Session) -> None:
                     name=item_name,
                     description=f"This is item {i}",
                 )
-                item = item_crud.create_item(
-                    session=session, item_create=item_in, owner_id=user.id
-                )
+                item = Item.model_validate(item_in, update={"owner_id": user.id})
+                session.add(item)
+                session.commit()
+                session.refresh(item)
 
-            # Create applications for local testing
-            app_name = f"Application {i}"
+            # Create applications
+            app_name = f"App {i}"
             app = session.exec(
                 select(Application).where(Application.name == app_name)
             ).first()
@@ -80,11 +78,12 @@ def init_db(session: Session) -> None:
                     name=app_name,
                     description=f"This is app {i}",
                 )
-                app = application_crud.create_application(
-                    session=session, application_create=app_in, owner_id=user.id
-                )
+                app = Application.model_validate(app_in, update={"owner_id": user.id})
+                session.add(app)
+                session.commit()
+                session.refresh(app)
 
-        # Create groups for local testing
+        # Create groups
         users = session.exec(select(User).limit(10)).all()
         member_ids = [user.id for user in users]
         for i in range(1, 52):
@@ -96,6 +95,8 @@ def init_db(session: Session) -> None:
                     description=f"This is group {i}",
                     member_ids=member_ids,
                 )
-                group = group_crud.create_group(
-                    session=session, group_create=group_in, owner_id=user.id
-                )
+                owner_id = member_ids[(i - 1) % len(member_ids)]
+                group = Group.model_validate(group_in, update={"owner_id": owner_id})
+                session.add(group)
+                session.commit()
+                session.refresh(group)

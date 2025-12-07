@@ -1,5 +1,8 @@
+import hashlib
+
 from sqlmodel import Session, or_, select
 
+from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.model.user import User, UserCreate, UserUpdate
 
@@ -19,6 +22,12 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
                 user_create.username = new_username
                 break
             suffix += 1
+    # Ensure avatar is set
+    if not user_create.avatar:
+        email_hash = hashlib.md5(
+            user_create.email.lower().encode(encoding="utf-8")
+        ).hexdigest()
+        user_create.avatar = f"{settings.GRAVATAR_SOURCE}{email_hash}?d=identicon&s=256"
     # Create user
     db_obj = User.model_validate(
         user_create,

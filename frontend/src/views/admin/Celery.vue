@@ -205,7 +205,7 @@ onUnmounted(() => {
 <template>
     <div class="card">
         <div class="flex justify-between items-center mb-4">
-            <h2 class="text-3xl font-bold">Celery Monitor</h2>
+            <h2 class="text-3xl font-bold">Celery</h2>
             <div class="flex items-center gap-2">
                 <SelectButton v-model="autoRefreshInterval" :options="refreshOptions" optionLabel="label" optionValue="value" :allowEmpty="false" />
                 <Button icon="pi pi-refresh" label="刷新" @click="refreshAll" :loading="loading" />

@@ -8,10 +8,12 @@ from app.api.routes import (
     login,
     openapi,
     private,
-    settings as settings_route,
     task,
     user,
     utils,
+)
+from app.api.routes import (
+    settings as settings_route,
 )
 from app.core.config import settings
 

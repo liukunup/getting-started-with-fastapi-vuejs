@@ -18,14 +18,6 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
-// 默认头像URL
-const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
-
-// 获取头像URL，如果没有则返回默认头像
-const getAvatarUrl = (avatarUrl) => {
-    return avatarUrl || defaultAvatar;
-};
-
 onMounted(() => {
     loadItems();
 });
@@ -174,7 +166,7 @@ const deleteSelectedItems = async () => {
                 <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="created_at" header="Created At" sortable style="min-width: 12rem">

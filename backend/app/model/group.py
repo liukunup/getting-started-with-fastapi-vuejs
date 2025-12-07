@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime
 from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .base import BaseDataModel
+from .base import BaseDataModel, DateTime
 from .link import GroupMemberLink
 from .user import UserPublic
 
@@ -45,8 +44,8 @@ class GroupPublic(SQLModel):
     description: str | None = None
     owner: UserPublic | None = None
     members: list[UserPublic] | None = []
-    created_at: datetime | None = None
-    updated_at: datetime | None = None
+    created_at: DateTime | None = None
+    updated_at: DateTime | None = None
 
 
 class GroupsPublic(SQLModel):

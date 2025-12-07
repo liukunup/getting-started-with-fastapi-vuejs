@@ -1,9 +1,11 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
-from starlette.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
+from starlette.middleware.cors import CORSMiddleware
 
+# Ensure tasks are registered
+import app.celery.tasks  # noqa: F401
 from app.api.main import api_router
 from app.core.config import settings
 from app.core.database import engine

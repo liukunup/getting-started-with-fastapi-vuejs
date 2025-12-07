@@ -9,7 +9,7 @@ from app.api.deps import get_db, get_cache
 from app.core.config import settings
 from app.core.cache import Cache
 from app.model.user import UserCreate
-from app.crud.user import create_user
+from app.crud import create_user
 # Import all models to ensure they are registered with SQLModel
 from app import model
 

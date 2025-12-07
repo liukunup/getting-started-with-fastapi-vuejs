@@ -41,7 +41,6 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
 
     FRONTEND_HOST: str = "http://localhost:5173"
-    BACKEND_HOST: str = "http://localhost:8000"
 
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
@@ -60,11 +59,13 @@ class Settings(BaseSettings):
 
     SENTRY_DSN: HttpUrl | None = None
 
+    GRAVATAR_SOURCE: HttpUrl = "https://cravatar.cn/avatar/"
+
     # Database
     DATABASE_TYPE: Literal["sqlite", "mysql", "mariadb", "postgres"] = "postgres"
     DATABASE_HOST: str = "localhost"
     DATABASE_PORT: int = 5432
-    DATABASE_USER: str = "root"
+    DATABASE_USER: str = "myapp"
     DATABASE_PASSWORD: str = "changethis"
     DATABASE_NAME: str = "myapp"
 
@@ -76,16 +77,6 @@ class Settings(BaseSettings):
     def SQLALCHEMY_DATABASE_URI(self) -> PostgresDsn | MySQLDsn | MariaDBDsn | str:
         if self.DATABASE_TYPE == "sqlite":
             return f"sqlite:///{self.SQLITE_FILE}"
-
-        if self.DATABASE_TYPE == "postgres":
-            return PostgresDsn.build(
-                scheme="postgresql+psycopg",
-                username=self.DATABASE_USER,
-                password=self.DATABASE_PASSWORD,
-                host=self.DATABASE_HOST,
-                port=self.DATABASE_PORT or 5432,
-                path=self.DATABASE_NAME,
-            )
 
         if self.DATABASE_TYPE == "mysql":
             return MySQLDsn.build(
@@ -107,6 +98,16 @@ class Settings(BaseSettings):
                 path=self.DATABASE_NAME,
             )
 
+        if self.DATABASE_TYPE == "postgres":
+            return PostgresDsn.build(
+                scheme="postgresql+psycopg",
+                username=self.DATABASE_USER,
+                password=self.DATABASE_PASSWORD,
+                host=self.DATABASE_HOST,
+                port=self.DATABASE_PORT or 5432,
+                path=self.DATABASE_NAME,
+            )
+
         raise ValueError(f"Unknown database type: {self.DATABASE_TYPE}")
 
     # Redis
@@ -118,16 +119,17 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[prop-decorator]
     @property
     def REDIS_URI(self) -> str:
+        redis_url_postfix = f"{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
         if self.REDIS_PASSWORD:
-            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
-        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+            return f"redis://:{self.REDIS_PASSWORD}@{redis_url_postfix}"
+        return f"redis://{redis_url_postfix}"
 
-    # Minio
-    MINIO_ENDPOINT: str = "localhost:9000"
-    MINIO_ACCESS_KEY: str = "minioadmin"
-    MINIO_SECRET_KEY: str = "changethis"
-    MINIO_BUCKET_NAME: str = "myapp"
-    MINIO_SECURE: bool = False
+    # Storage
+    STORAGE_ENDPOINT: str = "localhost:9000"
+    STORAGE_ACCESS_KEY: str = "admin"
+    STORAGE_SECRET_KEY: str = "changethis"
+    STORAGE_BUCKET_NAME: str = "myapp"
+    STORAGE_SECURE: bool = False
 
     # Email
     SMTP_TLS: bool = True
