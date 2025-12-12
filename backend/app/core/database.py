@@ -97,6 +97,7 @@ def init_db(session: Session) -> None:
                 )
                 owner_id = member_ids[(i - 1) % len(member_ids)]
                 group = Group.model_validate(group_in, update={"owner_id": owner_id})
+                group.members = users
                 session.add(group)
                 session.commit()
                 session.refresh(group)

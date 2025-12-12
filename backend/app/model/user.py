@@ -1,9 +1,9 @@
 import uuid
 from typing import TYPE_CHECKING
 
-from pydantic import EmailStr
+from pydantic import EmailStr, field_validator
 from sqlmodel import Field, Relationship, SQLModel
-
+from app.core.storage import storage
 from .base import BaseDataModel, DateTime
 from .link import GroupMemberLink
 
@@ -89,6 +89,9 @@ class User(UserBase, BaseDataModel, table=True):
 
     hashed_password: str
 
+    # OpenID Connect subject identifier
+    oidc_sub: str | None = Field(default=None, index=True)
+
     role_id: uuid.UUID | None = Field(default=None, foreign_key="roles.id")
     role: Role | None = Relationship(back_populates="users")
 
@@ -115,6 +118,14 @@ class UserPublic(SQLModel):
     role: RolePublic | None = None
     created_at: DateTime | None = None
     updated_at: DateTime | None = None
+
+    @field_validator("avatar", mode="after")
+    @classmethod
+    def sign_avatar_url(cls, v: str | None) -> str | None:
+        if v and v.startswith("http"):
+            return v
+
+        return storage.get_presigned_url(v)
 
 
 class UsersPublic(SQLModel):

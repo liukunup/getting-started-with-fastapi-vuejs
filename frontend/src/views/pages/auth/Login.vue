@@ -1,17 +1,49 @@
 <script setup>
 import FloatingConfigurator from '@/components/FloatingConfigurator.vue';
-import { LoginService } from '@/client';
+import { LoginService, OpenAPI } from '@/client';
 import { useToast } from 'primevue/usetoast';
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 const toast = useToast();
 
 const email = ref('');
 const password = ref('');
 const checked = ref(false);
 const loading = ref(false);
+const loginConfig = ref({
+    oidc_name: 'OpenID Connect',
+    oidc_enabled: false,
+    oidc_auto_login: false
+});
+
+onMounted(async () => {
+    const token = route.query.token;
+    if (token) {
+        localStorage.setItem('token', token);
+        localStorage.setItem('loginType', 'oidc');
+        toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
+        router.push('/');
+        return;
+    }
+
+    try {
+        const config = await LoginService.getLoginConfig();
+        loginConfig.value = config;
+        
+        if (config.oidc_enabled && config.oidc_auto_login && !route.query.no_auto_login) {
+            onOIDCLogin();
+        }
+    } catch (e) {
+        console.error("Failed to fetch login config", e);
+    }
+});
+
+const onOIDCLogin = () => {
+    window.location.href = `${OpenAPI.BASE}/api/v1/login/oidc`;
+};
 
 const onLogin = async () => {
     loading.value = true;
@@ -24,6 +56,7 @@ const onLogin = async () => {
         });
         // 保存token到localStorage
         localStorage.setItem('token', data.access_token);
+        localStorage.removeItem('loginType');
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
         // 跳转到首页
         router.push('/');
@@ -79,6 +112,7 @@ const onLogin = async () => {
                             <router-link to="/auth/forgot-password" class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Forgot password?</router-link>
                         </div>
                         <Button label="Sign In" class="w-full mb-4" @click="onLogin" :loading="loading"></Button>
+                        <Button v-if="loginConfig.oidc_enabled" :label="`Sign in with ${loginConfig.oidc_name}`" class="w-full mb-4" severity="contrast" @click="onOIDCLogin"></Button>
                         <div class="text-center">
                             <span class="text-muted-color font-medium">Don't have an account? </span>
                             <router-link to="/auth/register" class="font-medium no-underline ml-2 text-primary cursor-pointer">Sign Up</router-link>

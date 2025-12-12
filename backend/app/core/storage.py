@@ -1,7 +1,8 @@
-import json
+import io
 import logging
 import uuid
-from typing import BinaryIO
+from datetime import timedelta
+from urllib.parse import urlparse
 
 from minio import Minio
 
@@ -19,22 +20,11 @@ class Storage:
             secret_key=settings.STORAGE_SECRET_KEY,
             secure=settings.STORAGE_SECURE,
         )
-        self.__protocol = "https" if settings.STORAGE_SECURE else "http"
-        self.__url_prefix = (
-            f"{self.__protocol}://{settings.STORAGE_ENDPOINT}/{self.__bucket_name}"
-        )
-
         # Ensure bucket exists
         try:
             self._ensure_bucket()
         except Exception as e:
             logger.error(f"Failed to ensure bucket exists: {e}")
-
-        # Ensure policy is set even if bucket already exists
-        try:
-            self._set_public_read_policy()
-        except Exception as e:
-            logger.warning(f"Failed to set public read policy: {e}")
 
     @property
     def minio(self) -> Minio:
@@ -46,47 +36,44 @@ class Storage:
             self.__client.make_bucket(bucket_name=self.__bucket_name)
             logger.info(f"Created bucket: {self.__bucket_name}")
 
-    def _set_public_read_policy(self) -> None:
-        """Set bucket policy to allow public read access."""
-        # Policy to allow anonymous read access
-        policy = {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Principal": {"AWS": ["*"]},
-                    "Action": ["s3:GetObject"],
-                    "Resource": [f"arn:aws:s3:::{self.__bucket_name}/public/*"],
-                }
-            ],
-        }
-        # Set the bucket policy to allow public read access
-        self.__client.set_bucket_policy(self.__bucket_name, json.dumps(policy))
-        logger.info(
-            f"Set public read policy for bucket: {self.__bucket_name}, path: public/*"
-        )
-
-    def upload_avatar(
-        self, user_id: uuid.UUID, filename: str, data: BinaryIO, content_type: str
+    def get_presigned_url(
+        self,
+        object_name: str,
+        method: str = "GET",
+        expires: timedelta = timedelta(minutes=15),
     ) -> str:
-        """Upload user avatar to the storage and return its public URL."""
-        # Define object name
-        object_name = f"public/avatars/{user_id}/{filename}"
-        # Calculate length
-        data.seek(0, 2)
-        length = data.tell()
-        data.seek(0)
+        """Generate a presigned URL for the object."""
+        url = self.__client.get_presigned_url(
+            method,
+            self.__bucket_name,
+            object_name,
+            expires=expires,
+        )
+        # Convert to frontend S3 proxy URL
+        parsed = urlparse(url)
+        return f"{settings.FRONTEND_HOST}/s3{parsed.path}?{parsed.query}"
+
+    def save_avatar(self, user_id: uuid.UUID, data: bytes, content_type: str) -> str:
+        """Upload user avatar to the storage and return its object name."""
+        # Generate unique filename
+        ext = content_type.split("/")[-1]
+        if ext == "jpeg":
+            ext = "jpg"
+        filename = f"{uuid.uuid4()}.{ext}"
+
+        # Define object name (private path)
+        object_name = f"avatars/{user_id}/{filename}"
+
         # Upload the object
         self.__client.put_object(
             bucket_name=self.__bucket_name,
             object_name=object_name,
-            data=data,
-            length=length,
+            data=io.BytesIO(data),
+            length=len(data),
             content_type=content_type,
         )
-        url = f"{self.__url_prefix}/{object_name}"
-        logger.info(f"Uploaded avatar for user {user_id} to {url}")
-        return url
+        logger.info(f"Uploaded avatar for user {user_id} to {object_name}")
+        return object_name
 
 
 storage = Storage()

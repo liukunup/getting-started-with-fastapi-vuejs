@@ -1,5 +1,6 @@
 <script setup>
 import { GroupService, UserService } from '@/client';
+import { getAvatarUrl } from '@/utils';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -185,13 +186,13 @@ const deleteSelectedGroups = async () => {
                 <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="user_names" header="Users" sortable style="min-width: 12rem">
                     <template #body="{ data }">
                         <AvatarGroup v-if="data.members && data.members.length > 0">
-                            <Avatar v-for="member in data.members.slice(0, 4)" :key="member.id" :image="member.avatar" size="normal" shape="circle" />
+                            <Avatar v-for="member in data.members.slice(0, 4)" :key="member.id" :image="getAvatarUrl(member.avatar)" size="normal" shape="circle" />
                             <Avatar v-if="data.members.length > 4" :label="`+${data.members.length - 4}`" shape="circle" size="normal" :style="{ 'background-color': '#9c27b0', color: '#ffffff' }" />
                         </AvatarGroup>
                     </template>
@@ -226,7 +227,7 @@ const deleteSelectedGroups = async () => {
                     <MultiSelect id="members" v-model="group.members" :options="users" optionLabel="displayName" dataKey="id" placeholder="Select Members" filter fluid showClear>
                         <template #value="slotProps">
                             <div class="flex flex-wrap gap-2" v-if="slotProps.value && slotProps.value.length">
-                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="option.avatar" removable @remove="removeMember(option)" />
+                                <Chip v-for="option in slotProps.value" :key="option.id" :label="option.displayName" :image="getAvatarUrl(option.avatar)" removable @remove="removeMember(option)" />
                             </div>
                             <template v-else>
                                 {{ slotProps.placeholder }}
@@ -234,7 +235,7 @@ const deleteSelectedGroups = async () => {
                         </template>
                         <template #option="slotProps">
                             <div class="flex items-center">
-                                <Avatar :image="slotProps.option.avatar" shape="circle" size="small" class="mr-2" />
+                                <Avatar :image="getAvatarUrl(slotProps.option.avatar)" shape="circle" size="small" class="mr-2" />
                                 <span>{{ slotProps.option.displayName }}</span>
                             </div>
                         </template>

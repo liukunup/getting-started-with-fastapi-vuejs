@@ -1,5 +1,6 @@
 <script setup>
 import { UserService } from '@/client';
+import { getAvatarUrl } from '@/utils';
 import { Cropper } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
 import { useToast } from 'primevue/usetoast';
@@ -36,6 +37,10 @@ const editForm = ref({
 const avatarLabel = computed(() => {
     if (user.value.avatar) return '';
     return user.value.username?.charAt(0).toUpperCase() || user.value.email?.charAt(0).toUpperCase() || 'U';
+});
+
+const avatarUrl = computed(() => {
+    return getAvatarUrl(user.value.avatar);
 });
 
 onMounted(() => {
@@ -90,15 +95,20 @@ const cropImage = () => {
                 async (blob) => {
                     try {
                         const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' });
-                        const formData = {
-                            file: file
-                        };
-                        const data = await UserService.uploadAvatar({ formData });
-                        user.value = data;
+                        await UserService.uploadAvatar({
+                            formData: {
+                                file: file
+                            }
+                        });
+
+                        // Reload user profile to get the new signed URL
+                        await loadUserProfile();
+
                         cropperDialog.value = false;
                         cropperImage.value = null;
                         toast.add({ severity: 'success', summary: 'Success', detail: 'Avatar uploaded successfully', life: 3000 });
                     } catch (error) {
+                        console.error(error);
                         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to upload avatar', life: 3000 });
                     } finally {
                         uploadingAvatar.value = false;

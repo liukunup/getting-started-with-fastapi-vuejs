@@ -1,35 +1,16 @@
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
-from sqlmodel import Session, select
 from starlette.middleware.cors import CORSMiddleware
 
 # Ensure tasks are registered
-import app.celery.tasks  # noqa: F401
+import app.celery.tasks  # noqa
 from app.api.main import api_router
 from app.core.config import settings
-from app.core.database import engine
-from app.model.system_setting import SystemSetting
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
-
-
-# Load settings from DB
-try:
-    with Session(engine) as session:
-        db_settings = session.exec(select(SystemSetting)).all()
-        for setting in db_settings:
-            if hasattr(settings, setting.key):
-                val = setting.value
-                if setting.key == "SMTP_PORT":
-                    val = int(val)
-                elif setting.key in ["SMTP_TLS", "SMTP_SSL"]:
-                    val = val == "True"
-                setattr(settings, setting.key, val)
-except Exception as e:
-    print(f"Warning: Could not load settings from DB: {e}")
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":

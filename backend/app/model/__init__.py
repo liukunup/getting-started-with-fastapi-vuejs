@@ -10,4 +10,4 @@ from app.model.task import *
 from app.model.task_execution import *
 from app.model.user import *
 
-__all__ = [SQLModel]
+__all__ = ["SQLModel"]

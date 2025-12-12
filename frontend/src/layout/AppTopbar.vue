@@ -3,6 +3,7 @@ import { useLayout } from '@/layout/composables/layout';
 import AppConfigurator from './AppConfigurator.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { OpenAPI } from '@/client';
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const router = useRouter();
@@ -12,15 +13,24 @@ const items = ref([
         label: 'Profile',
         icon: 'pi pi-user',
         command: async () => {
-            await router.push('/home/profile');
+            await router.push('/profile');
         }
     },
     {
         label: 'Logout',
         icon: 'pi pi-sign-out',
         command: async () => {
+            const loginType = localStorage.getItem('loginType');
+
             // 清除本地存储的token
             localStorage.removeItem('token');
+            localStorage.removeItem('loginType');
+
+            if (loginType === 'oidc') {
+                window.location.href = `${OpenAPI.BASE}/api/v1/logout/oidc`;
+                return;
+            }
+
             // 跳转到登录页
             await router.push('/auth/login');
             // 强制刷新页面以清除所有状态

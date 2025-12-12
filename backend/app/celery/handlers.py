@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 @task_received.connect
-def task_received_handler(request=None, **kwargs):
+def task_received_handler(request=None, **kwargs):  # noqa: ARG001
     """
     Handler for task_received signal.
     """
@@ -30,7 +30,7 @@ def task_received_handler(request=None, **kwargs):
 
 
 @task_prerun.connect
-def task_prerun_handler(task_id=None, task=None, *args, **kwargs):
+def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG001
     """
     Handler for task_prerun signal.
     """
@@ -115,7 +115,7 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):
 
 
 @task_success.connect
-def task_success_handler(sender=None, result=None, **kwargs):
+def task_success_handler(sender=None, result=None, **kwargs):  # noqa: ARG001
     """
     Handler for task_success signal.
     """
@@ -166,7 +166,12 @@ def task_success_handler(sender=None, result=None, **kwargs):
 
 @task_failure.connect
 def task_failure_handler(
-    task_id=None, exception=None, traceback=None, einfo=None, *args, **kwargs
+    task_id=None,
+    exception=None,
+    traceback=None,
+    einfo=None,
+    *args,
+    **kwargs,  # noqa: ARG001
 ):
     """
     Handler for task_failure signal.
@@ -223,7 +228,7 @@ def task_failure_handler(
 
 
 @task_retry.connect
-def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
+def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):  # noqa: ARG001
     """
     Handler for task_retry signal.
     """
@@ -255,7 +260,7 @@ def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):
 
 
 @task_postrun.connect
-def task_postrun_handler(task_id=None, task=None, retval=None, *args, **kwargs):
+def task_postrun_handler(task_id=None, task=None, retval=None, *args, **kwargs):  # noqa: ARG001
     """
     Handler for task_postrun signal.
     """
@@ -264,7 +269,11 @@ def task_postrun_handler(task_id=None, task=None, retval=None, *args, **kwargs):
 
 @task_revoked.connect
 def task_revoked_handler(
-    request=None, terminated=None, signum=None, expired=None, **kwargs
+    request=None,
+    terminated=None,
+    signum=None,
+    expired=None,
+    **kwargs,  # noqa: ARG001
 ):
     """
     Handler for task_revoked signal.

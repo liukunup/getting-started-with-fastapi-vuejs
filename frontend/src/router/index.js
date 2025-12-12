@@ -100,47 +100,47 @@ const router = createRouter({
                 {
                     path: '/items',
                     name: 'items',
-                    component: () => import('@/views/management/Items.vue')
-                },
-                {
-                    path: '/tasks',
-                    name: 'tasks',
-                    component: () => import('@/views/management/Tasks.vue')
-                },
-                {
-                    path: '/task-executions',
-                    name: 'taskExecutions',
-                    component: () => import('@/views/management/TaskExecutions.vue')
+                    component: () => import('@/views/business/Items.vue')
                 },
                 {
                     path: '/groups',
                     name: 'groups',
-                    component: () => import('@/views/management/Groups.vue')
+                    component: () => import('@/views/business/Groups.vue')
                 },
                 {
                     path: '/applications',
                     name: 'applications',
-                    component: () => import('@/views/management/Applications.vue')
+                    component: () => import('@/views/business/Applications.vue')
+                },
+               {
+                    path: '/tasks',
+                    name: 'tasks',
+                    component: () => import('@/views/business/Tasks.vue')
                 },
                 {
-                    path: '/users',
-                    name: 'users',
-                    component: () => import('@/views/admin/Users.vue')
+                    path: '/task-executions',
+                    name: 'taskexecutions',
+                    component: () => import('@/views/business/TaskExecutions.vue')
+                },
+                {
+                    path: '/profile',
+                    name: 'profile',
+                    component: () => import('@/views/pages/Profile.vue')
                 },
                 {
                     path: '/celery',
                     name: 'celery',
-                    component: () => import('@/views/admin/Celery.vue')
+                    component: () => import('@/views/pages/admin/Celery.vue')
+                },
+                {
+                    path: '/users',
+                    name: 'users',
+                    component: () => import('@/views/pages/admin/Users.vue')
                 },
                 {
                     path: '/settings',
                     name: 'settings',
-                    component: () => import('@/views/admin/Settings.vue')
-                },
-                {
-                    path: '/home/profile',
-                    name: 'profile',
-                    component: () => import('@/views/home/Profile.vue')
+                    component: () => import('@/views/pages/admin/Settings.vue')
                 },
                 {
                     path: '/pages/empty',

@@ -111,7 +111,7 @@ class DatabaseScheduler(Scheduler):
         try:
             with Session(engine) as session:
                 statement = select(Task).where(
-                    Task.task_type == TaskType.PERIODIC, Task.enabled == True
+                    Task.task_type == TaskType.PERIODIC, Task.enabled
                 )
                 tasks = session.exec(statement).all()
 

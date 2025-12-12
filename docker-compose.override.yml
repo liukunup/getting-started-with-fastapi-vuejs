@@ -1,3 +1,8 @@
+networks:
+  traefik-public:
+    # For local dev, don't expect an external Traefik network
+    external: false
+
 services:
 
   # Local services are available on their ports, but also available on:
@@ -49,12 +54,23 @@ services:
     restart: "no"
     ports:
       - "5432:5432"
-  
+
+  redis:
+    restart: "no"
+    ports:
+      - "6379:6379"
+
   rustfs:
     restart: "no"
     ports:
       - "9000:9000"
       - "9001:9001"
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"
 
   backend:
     restart: "no"
@@ -63,11 +79,7 @@ services:
     build:
       context: ./backend
     # command: sleep infinity  # Infinite loop to keep container alive doing nothing
-    command:
-      - fastapi
-      - run
-      - --reload
-      - "app/main.py"
+    command: bash scripts/start-dev.sh
     develop:
       watch:
         - path: ./backend
@@ -78,7 +90,6 @@ services:
             - .venv
         - path: ./backend/pyproject.toml
           action: rebuild
-    # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/htmlcov
     environment:
@@ -86,52 +97,6 @@ services:
       SMTP_PORT: "1025"
       SMTP_TLS: "false"
       EMAILS_FROM_EMAIL: "noreply@example.com"
-
-  worker:
-    restart: "no"
-    build:
-      context: ./backend
-    develop:
-      watch:
-        - path: ./backend
-          action: sync
-          target: /app
-          ignore:
-            - ./backend/.venv
-            - .venv
-        - path: ./backend/pyproject.toml
-          action: rebuild
-    environment:
-      SMTP_HOST: "mailcatcher"
-      SMTP_PORT: "1025"
-      SMTP_TLS: "false"
-      EMAILS_FROM_EMAIL: "noreply@example.com"
-
-  beat:
-    restart: "no"
-    build:
-      context: ./backend
-    develop:
-      watch:
-        - path: ./backend
-          action: sync
-          target: /app
-          ignore:
-            - ./backend/.venv
-            - .venv
-        - path: ./backend/pyproject.toml
-          action: rebuild
-    environment:
-      SMTP_HOST: "mailcatcher"
-      SMTP_PORT: "1025"
-      SMTP_TLS: "false"
-      EMAILS_FROM_EMAIL: "noreply@example.com"
-
-  mailcatcher:
-    image: schickling/mailcatcher
-    ports:
-      - "1080:1080"
-      - "1025:1025"
 
   frontend:
     restart: "no"
@@ -142,6 +107,14 @@ services:
       args:
         - VITE_API_URL=http://localhost:8000
         - NODE_ENV=development
+    develop:
+      watch:
+        - path: ./frontend/package.json
+          action: rebuild
+        - path: ./frontend
+          action: rebuild
+          ignore:
+            - node_modules
 
   playwright:
     build:
@@ -154,8 +127,6 @@ services:
     depends_on:
       - backend
       - mailcatcher
-    env_file:
-      - .env
     environment:
       - VITE_API_URL=http://backend:8000
       - MAILCATCHER_HOST=http://mailcatcher:1080
@@ -167,8 +138,3 @@ services:
       - ./frontend/test-results:/app/test-results
     ports:
       - 9323:9323
-
-networks:
-  traefik-public:
-    # For local dev, don't expect an external Traefik network
-    external: false

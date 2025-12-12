@@ -69,7 +69,6 @@ declare module 'vue' {
     Popover: typeof import('primevue/popover')['default']
     PricingWidget: typeof import('./src/components/landing/PricingWidget.vue')['default']
     ProgressBar: typeof import('primevue/progressbar')['default']
-    ProgressSpinner: typeof import('primevue/progressspinner')['default']
     RadioButton: typeof import('primevue/radiobutton')['default']
     Rating: typeof import('primevue/rating')['default']
     RecentSalesWidget: typeof import('./src/components/dashboard/RecentSalesWidget.vue')['default']

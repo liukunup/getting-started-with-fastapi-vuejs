@@ -1,5 +1,6 @@
 <script setup>
 import { ItemService } from '@/client';
+import { getAvatarUrl } from '@/utils';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -164,9 +165,9 @@ const deleteSelectedItems = async () => {
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
                 <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
-                <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
+                <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 12rem">
                     <template #body="{ data }">
-                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="data.owner?.avatar" class="mr-2" />
+                        <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
                 <Column field="created_at" header="Created At" sortable style="min-width: 12rem">

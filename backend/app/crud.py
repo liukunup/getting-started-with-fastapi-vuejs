@@ -1,8 +1,10 @@
 import hashlib
+import secrets
 
 from sqlmodel import Session, or_, select
 
 from app.core.config import settings
+from app.core.ldap import authenticate as ldap_authenticate
 from app.core.security import get_password_hash, verify_password
 from app.model.user import User, UserCreate, UserUpdate
 
@@ -55,6 +57,12 @@ def update_user(*, session: Session, db_user: User, user_update: UserUpdate) -> 
     return db_user
 
 
+def get_user_by_oidc_sub(*, session: Session, oidc_sub: str) -> User | None:
+    statement = select(User).where(User.oidc_sub == oidc_sub)
+    db_user = session.exec(statement).first()
+    return db_user
+
+
 def get_user_by_username(*, session: Session, username: str) -> User | None:
     statement = select(User).where(User.username == username)
     db_user = session.exec(statement).first()
@@ -84,8 +92,33 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
     db_user = get_user_by_username_or_email(
         session=session, username=username, email=username
     )
-    if not db_user:
-        return None
-    if not verify_password(password, db_user.hashed_password):
-        return None
-    return db_user
+
+    # Use local authentication first
+    if db_user and verify_password(password, db_user.hashed_password):
+        return db_user
+
+    # Use LDAP authentication if enabled
+    if settings.LDAP_ENABLED:
+        ldap_user = ldap_authenticate(username, password)
+        if ldap_user:
+            # Check if user exists locally
+            if db_user:
+                return db_user
+
+            # Check if user with same email exists
+            email = ldap_user.get("email")
+            if email:
+                existing_user = get_user_by_email(session=session, email=email)
+                if existing_user:
+                    return existing_user
+
+            # Create new user from LDAP info
+            user_create = UserCreate(
+                email=email,
+                username=ldap_user.get("username"),
+                password=secrets.token_urlsafe(32),
+                full_name=ldap_user.get("full_name"),
+            )
+            return create_user(session=session, user_create=user_create)
+
+    return None

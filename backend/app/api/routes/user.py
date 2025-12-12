@@ -311,23 +311,29 @@ def force_logout(session: SessionDep, cache: CacheDep, user_id: uuid.UUID) -> Me
     return Message(message="User forced to logout")
 
 
-@router.post("/me/avatar", response_model=UserPrivate)
+@router.post("/me/avatar", response_model=UserPublic)
 def upload_avatar(
     session: SessionDep, current_user: CurrentUser, file: UploadFile = File(...)
-) -> UserPrivate:
+) -> UserPublic:
     """
-    Upload avatar for current user.
+    Upload avatar.
     """
-    # Upload file to MinIO
-    avatar = storage.upload_avatar(
+    # Validate content type
+    if file.content_type not in ["image/jpeg", "image/png", "image/gif", "image/webp"]:
+        raise HTTPException(status_code=400, detail="Invalid file type")
+
+    # Read file content
+    content = file.file.read()
+
+    # Save to storage
+    object_name = storage.save_avatar(
         user_id=current_user.id,
-        filename=file.filename,
-        data=file.file,
+        data=content,
         content_type=file.content_type,
     )
 
-    # Update user's avatar URL
-    current_user.avatar = avatar
+    # Update user
+    current_user.avatar = object_name
     session.add(current_user)
     session.commit()
     session.refresh(current_user)

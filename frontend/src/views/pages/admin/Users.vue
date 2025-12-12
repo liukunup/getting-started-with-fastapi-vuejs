@@ -1,5 +1,6 @@
 <script setup>
 import { UserService } from '@/client';
+import { getAvatarUrl } from '@/utils';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -18,14 +19,6 @@ const filters = ref({
 });
 const submitted = ref(false);
 const loading = ref(true);
-
-// 默认头像URL
-const defaultAvatar = 'https://primefaces.org/cdn/primevue/images/avatar/amyelsner.png';
-
-// 获取头像URL，如果没有则返回默认头像
-const getAvatarUrl = (avatarUrl) => {
-    return avatarUrl || defaultAvatar;
-};
 
 onMounted(() => {
     loadUsers();

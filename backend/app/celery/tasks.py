@@ -20,7 +20,7 @@ def demo_task():
 
 
 @celery_app.task(name="demo_dynamic_task", bind=True, acks_late=True)
-def demo_dynamic_task(self, *args, **kwargs):
+def demo_dynamic_task(self, *args, **kwargs):  # noqa: ARG001
     """
     A demo dynamic task that accepts arguments.
     """

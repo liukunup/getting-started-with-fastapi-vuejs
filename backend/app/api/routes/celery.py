@@ -254,7 +254,7 @@ def get_registered_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> An
             for worker_tasks in registered.values():
                 all_tasks.update(worker_tasks)
 
-        return {"tasks": sorted(list(all_tasks)), "total": len(all_tasks)}
+        return {"tasks": sorted(all_tasks), "total": len(all_tasks)}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to get registered tasks: {str(e)}"

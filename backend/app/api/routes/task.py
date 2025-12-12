@@ -331,7 +331,7 @@ def delete_task(
 
     # Revoke related task executions
     statement = select(TaskExecution).where(
-        TaskExecution.task_id == task_id, TaskExecution.completed_at == None
+        TaskExecution.task_id == task_id, TaskExecution.completed_at is None
     )
     executions = session.exec(statement).all()
     for execution in executions:
@@ -395,7 +395,6 @@ def trigger_task(
 def enable_task(
     session: SessionDep,
     current_user: CurrentUser,
-    celery_app: CeleryDep,
     task_id: uuid.UUID,
 ) -> TaskPublic:
     """
@@ -420,7 +419,6 @@ def enable_task(
 def disable_task(
     session: SessionDep,
     current_user: CurrentUser,
-    celery_app: CeleryDep,
     task_id: uuid.UUID,
 ) -> TaskPublic:
     """
@@ -468,10 +466,9 @@ def get_all_task_executions(
     if not current_user.is_superuser:
         from app.model.task import Task
 
-        user_task_ids = set()
         tasks_statement = select(Task.id).where(Task.owner_id == current_user.id)
         user_tasks = session.exec(tasks_statement).all()
-        user_task_ids = {task for task in user_tasks}
+        user_task_ids = {t.id for t in user_tasks}
 
         executions = [e for e in executions if e.task_id in user_task_ids]
     statement = select(func.count()).select_from(TaskExecution)
@@ -563,7 +560,7 @@ def get_task_execution_status(
         }
 
     try:
-        celery_task = AsyncResult(task.celery_task_id, app=task_queue.celery)
+        celery_task = AsyncResult(task.celery_task_id, app=celery_app)
         return {
             "task_id": str(task.id),
             "celery_task_id": task.celery_task_id,

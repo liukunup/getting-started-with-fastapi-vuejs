@@ -471,6 +471,10 @@ export type ItemDeleteItemData = {
 
 export type ItemDeleteItemResponse = (Message);
 
+export type LoginGetLoginConfigResponse = ({
+    [key: string]: unknown;
+});
+
 export type LoginLoginAccessTokenData = {
     formData: Body_Login_login_access_token;
 };

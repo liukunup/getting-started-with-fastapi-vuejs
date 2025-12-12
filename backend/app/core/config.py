@@ -140,6 +140,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     EMAILS_FROM_EMAIL: EmailStr | None = None
     EMAILS_FROM_NAME: EmailStr | None = None
+    EMAIL_TEST_USER: EmailStr = "test@example.com"
 
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
@@ -154,7 +155,51 @@ class Settings(BaseSettings):
     def emails_enabled(self) -> bool:
         return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
 
-    EMAIL_TEST_USER: EmailStr = "test@example.com"
+    # OIDC
+    OIDC_ENABLED: bool = False
+    OIDC_NAME: str | None = None
+    OIDC_AUTH_URL: str | None = None
+    OIDC_TOKEN_URL: str | None = None
+    OIDC_USERINFO_URL: str | None = None
+    OIDC_CLIENT_ID: str | None = None
+    OIDC_CLIENT_SECRET: str | None = None
+    OIDC_SCOPES: str = "openid profile email"
+    SIGNOUT_REDIRECT_URL: str | None = None
+    AUTO_LOGIN: bool = False
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def oidc_configured(self) -> bool:
+        return (
+            self.OIDC_AUTH_URL is not None
+            and self.OIDC_TOKEN_URL is not None
+            and self.OIDC_USERINFO_URL is not None
+            and self.OIDC_CLIENT_ID is not None
+            and self.OIDC_CLIENT_SECRET is not None
+            and self.OIDC_SCOPES is not None
+        )
+
+    # LDAP
+    LDAP_ENABLED: bool = False
+    LDAP_HOST: str | None = None
+    LDAP_PORT: int = 389
+    LDAP_BIND_DN: str | None = None
+    LDAP_BIND_PASSWORD: str | None = None
+    LDAP_BASE_DN: str | None = None
+    LDAP_USER_FILTER: str = "(cn={username})"
+    LDAP_EMAIL_ATTRIBUTE: str = "mail"
+    LDAP_USERNAME_ATTRIBUTE: str = "cn"
+    LDAP_FULLNAME_ATTRIBUTE: str = "displayName"
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def ldap_configured(self) -> bool:
+        return (
+            self.LDAP_HOST is not None
+            and self.LDAP_BIND_DN is not None
+            and self.LDAP_BIND_PASSWORD is not None
+        )
+
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
