@@ -3,43 +3,18 @@ from typing import TYPE_CHECKING
 
 from pydantic import EmailStr, field_validator
 from sqlmodel import Field, Relationship, SQLModel
-from app.core.storage import storage
+
 from .base import BaseDataModel, DateTime
 from .link import GroupMemberLink
+from .role import Role, RolePublic
 
 if TYPE_CHECKING:
+    from .api import Api
     from .application import Application
     from .group import Group
     from .item import Item
+    from .menu import Menu
     from .task import Task
-
-
-class RolePermissionLink(SQLModel, table=True):
-    __tablename__ = "role_permission_link"
-
-    role_id: uuid.UUID = Field(foreign_key="roles.id", primary_key=True)
-    permission_id: uuid.UUID = Field(foreign_key="permissions.id", primary_key=True)
-
-
-class Permission(BaseDataModel, table=True):
-    __tablename__ = "permissions"
-
-    name: str = Field(max_length=255, nullable=False, unique=True, index=True)
-    description: str | None = Field(default=None, max_length=512)
-    roles: list["Role"] = Relationship(
-        back_populates="permissions", link_model=RolePermissionLink
-    )
-
-
-class Role(BaseDataModel, table=True):
-    __tablename__ = "roles"
-
-    name: str = Field(max_length=255, nullable=False, unique=True, index=True)
-    description: str | None = Field(default=None, max_length=512)
-    permissions: list["Permission"] = Relationship(
-        back_populates="roles", link_model=RolePermissionLink
-    )
-    users: list["User"] = Relationship(back_populates="role")
 
 
 class UserRegister(SQLModel):
@@ -95,6 +70,9 @@ class User(UserBase, BaseDataModel, table=True):
     role_id: uuid.UUID | None = Field(default=None, foreign_key="roles.id")
     role: Role | None = Relationship(back_populates="users")
 
+    apis: list["Api"] = Relationship(back_populates="owner")
+    menus: list["Menu"] = Relationship(back_populates="owner")
+
     items: list["Item"] = Relationship(back_populates="owner")
     applications: list["Application"] = Relationship(back_populates="owner")
     tasks: list["Task"] = Relationship(back_populates="owner")
@@ -102,12 +80,6 @@ class User(UserBase, BaseDataModel, table=True):
     group_members: list["Group"] = Relationship(
         back_populates="members", link_model=GroupMemberLink
     )
-
-
-class RolePublic(SQLModel):
-    id: uuid.UUID
-    name: str
-    description: str | None = None
 
 
 class UserPublic(SQLModel):
@@ -124,6 +96,8 @@ class UserPublic(SQLModel):
     def sign_avatar_url(cls, v: str | None) -> str | None:
         if v and v.startswith("http"):
             return v
+
+        from app.core.storage import storage
 
         return storage.get_presigned_url(v)
 

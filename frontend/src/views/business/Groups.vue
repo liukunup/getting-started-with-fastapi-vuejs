@@ -197,12 +197,7 @@ const deleteSelectedGroups = async () => {
                         </AvatarGroup>
                     </template>
                 </Column>
-                <Column field="created_at" header="Created At" sortable style="min-width: 10rem">
-                    <template #body="{ data }">
-                        {{ formatDate(data.created_at) }}
-                    </template>
-                </Column>
-                <Column :exportable="false" style="min-width: 12rem">
+                <Column :exportable="false" style="min-width: 6rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editGroup(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteGroup(slotProps.data)" />

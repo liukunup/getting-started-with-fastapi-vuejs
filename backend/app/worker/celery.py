@@ -6,7 +6,7 @@ celery_app = Celery(
     "worker",
     broker=settings.REDIS_URI,
     backend=settings.REDIS_URI,
-    include=["app.celery.tasks", "app.celery.handlers"],
+    include=["app.worker.tasks", "app.worker.handlers"],
 )
 
 celery_app.conf.update(
@@ -19,5 +19,5 @@ celery_app.conf.update(
     task_soft_time_limit=55 * 60,  # 55 minutes
     worker_max_tasks_per_child=1000,
     worker_prefetch_multiplier=4,
-    beat_scheduler="app.celery.scheduler.DatabaseScheduler",
+    beat_scheduler="app.worker.scheduler.DatabaseScheduler",
 )

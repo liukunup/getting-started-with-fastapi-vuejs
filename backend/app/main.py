@@ -4,9 +4,10 @@ from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
 # Ensure tasks are registered
-import app.celery.tasks  # noqa
+import app.worker.tasks  # noqa
 from app.api.main import api_router
 from app.core.config import settings
+from app.core.middleware import CasbinMiddleware, OpenApiMiddleware
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -31,5 +32,8 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+app.add_middleware(CasbinMiddleware)
+app.add_middleware(OpenApiMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

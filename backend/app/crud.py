@@ -6,7 +6,10 @@ from sqlmodel import Session, or_, select
 from app.core.config import settings
 from app.core.ldap import authenticate as ldap_authenticate
 from app.core.security import get_password_hash, verify_password
+from app.model.role import Role
 from app.model.user import User, UserCreate, UserUpdate
+from app.model.menu import Menu, MenuCreate
+from app.model.api import Api, ApiCreate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -24,12 +27,20 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
                 user_create.username = new_username
                 break
             suffix += 1
+
     # Ensure avatar is set
     if not user_create.avatar:
         email_hash = hashlib.md5(
             user_create.email.lower().encode(encoding="utf-8")
         ).hexdigest()
         user_create.avatar = f"{settings.GRAVATAR_SOURCE}{email_hash}?d=identicon&s=256"
+
+    # Ensure role is set
+    if not user_create.role_id:
+        role = session.exec(select(Role).where(Role.name == "user")).first()
+        if role:
+            user_create.role_id = role.id
+
     # Create user
     db_obj = User.model_validate(
         user_create,
@@ -122,3 +133,33 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
             return create_user(session=session, user_create=user_create)
 
     return None
+
+
+def create_menu(*, session: Session, menu_create: MenuCreate, owner_id=None) -> Menu:
+    """Create a menu item in the database."""
+
+    menu = Menu.model_validate(menu_create)
+
+    if owner_id:
+        menu.owner_id = owner_id
+
+    session.add(menu)
+    session.commit()
+    session.refresh(menu)
+
+    return menu
+
+
+def create_api(*, session: Session, api_create: ApiCreate, owner_id=None) -> Api:
+    """Create an api in the database."""
+
+    api = Api.model_validate(api_create)
+
+    if owner_id:
+        api.owner_id = owner_id
+
+    session.add(api)
+    session.commit()
+    session.refresh(api)
+
+    return api

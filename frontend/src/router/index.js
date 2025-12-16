@@ -143,6 +143,21 @@ const router = createRouter({
                     component: () => import('@/views/pages/admin/Settings.vue')
                 },
                 {
+                    path: '/admin/roles',
+                    name: 'roles',
+                    component: () => import('@/views/pages/admin/Roles.vue')
+                },
+                {
+                    path: '/admin/menus',
+                    name: 'menus',
+                    component: () => import('@/views/pages/admin/Menus.vue')
+                },
+                {
+                    path: '/admin/apis',
+                    name: 'apis',
+                    component: () => import('@/views/pages/admin/Apis.vue')
+                },
+                {
                     path: '/pages/empty',
                     name: 'empty',
                     component: () => import('@/views/pages/Empty.vue')

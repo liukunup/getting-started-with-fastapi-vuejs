@@ -86,8 +86,7 @@ export const ApplicationPrivateSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -98,8 +97,7 @@ export const ApplicationPrivateSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -161,8 +159,7 @@ export const ApplicationPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -173,8 +170,7 @@ export const ApplicationPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -425,8 +421,7 @@ export const GroupPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -437,8 +432,7 @@ export const GroupPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -614,8 +608,7 @@ export const ItemPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -626,8 +619,7 @@ export const ItemPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -702,6 +694,345 @@ export const ItemsPublicSchema = {
     title: 'ItemsPublic'
 } as const;
 
+export const MenuCreateSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Label'
+        },
+        icon: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Icon'
+        },
+        to: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'To'
+        },
+        url: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Url'
+        },
+        target: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target'
+        },
+        component: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Component'
+        },
+        clazz: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Clazz'
+        },
+        is_hidden: {
+            type: 'boolean',
+            title: 'Is Hidden',
+            default: false
+        },
+        parent_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parent Id'
+        }
+    },
+    type: 'object',
+    required: ['label'],
+    title: 'MenuCreate'
+} as const;
+
+export const MenuPublicSchema = {
+    properties: {
+        label: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Label'
+        },
+        icon: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Icon'
+        },
+        to: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'To'
+        },
+        url: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Url'
+        },
+        target: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target'
+        },
+        component: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Component'
+        },
+        clazz: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Clazz'
+        },
+        is_hidden: {
+            type: 'boolean',
+            title: 'Is Hidden',
+            default: false
+        },
+        parent_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parent Id'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        children: {
+            items: {
+                '$ref': '#/components/schemas/MenuPublic'
+            },
+            type: 'array',
+            title: 'Children',
+            default: []
+        },
+        items: {
+            items: {
+                '$ref': '#/components/schemas/MenuPublic'
+            },
+            type: 'array',
+            title: 'Items',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['label', 'id'],
+    title: 'MenuPublic'
+} as const;
+
+export const MenuUpdateSchema = {
+    properties: {
+        label: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Label'
+        },
+        icon: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Icon'
+        },
+        to: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'To'
+        },
+        url: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Url'
+        },
+        target: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Target'
+        },
+        component: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Component'
+        },
+        clazz: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Clazz'
+        },
+        is_hidden: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Hidden'
+        },
+        parent_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parent Id'
+        }
+    },
+    type: 'object',
+    title: 'MenuUpdate'
+} as const;
+
 export const MessageSchema = {
     properties: {
         message: {
@@ -737,6 +1068,90 @@ export const PeriodicScheduleTypeSchema = {
     description: '周期任务调度类型'
 } as const;
 
+export const PermissionCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 512
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'PermissionCreate'
+} as const;
+
+export const PermissionPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name'],
+    title: 'PermissionPublic'
+} as const;
+
+export const PermissionUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 512
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    title: 'PermissionUpdate'
+} as const;
+
 export const PrivateUserCreateSchema = {
     properties: {
         email: {
@@ -762,6 +1177,31 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const RoleCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 512
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'RoleCreate'
 } as const;
 
 export const RolePublicSchema = {
@@ -790,6 +1230,73 @@ export const RolePublicSchema = {
     type: 'object',
     required: ['id', 'name'],
     title: 'RolePublic'
+} as const;
+
+export const RoleUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 512
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        }
+    },
+    type: 'object',
+    title: 'RoleUpdate'
+} as const;
+
+export const RoleWithPermissionsPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        permissions: {
+            items: {
+                '$ref': '#/components/schemas/PermissionPublic'
+            },
+            type: 'array',
+            title: 'Permissions',
+            default: []
+        }
+    },
+    type: 'object',
+    required: ['id', 'name'],
+    title: 'RoleWithPermissionsPublic'
 } as const;
 
 export const SettingsUpdateSchema = {
@@ -833,6 +1340,17 @@ export const SettingsUpdateSchema = {
             ],
             title: 'Smtp Host'
         },
+        SMTP_PORT: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Port'
+        },
         SMTP_USER: {
             anyOf: [
                 {
@@ -854,6 +1372,28 @@ export const SettingsUpdateSchema = {
                 }
             ],
             title: 'Smtp Password'
+        },
+        SMTP_TLS: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Tls'
+        },
+        SMTP_SSL: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Smtp Ssl'
         },
         EMAILS_FROM_EMAIL: {
             anyOf: [
@@ -878,7 +1418,7 @@ export const SettingsUpdateSchema = {
             ],
             title: 'Emails From Name'
         },
-        SMTP_TLS: {
+        OIDC_ENABLED: {
             anyOf: [
                 {
                     type: 'boolean'
@@ -887,9 +1427,97 @@ export const SettingsUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Smtp Tls'
+            title: 'Oidc Enabled'
         },
-        SMTP_SSL: {
+        OIDC_NAME: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Name'
+        },
+        OIDC_AUTH_URL: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Auth Url'
+        },
+        OIDC_TOKEN_URL: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Token Url'
+        },
+        OIDC_USERINFO_URL: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Userinfo Url'
+        },
+        OIDC_CLIENT_ID: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Client Id'
+        },
+        OIDC_CLIENT_SECRET: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Client Secret'
+        },
+        OIDC_SCOPES: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Oidc Scopes'
+        },
+        SIGNOUT_REDIRECT_URL: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Signout Redirect Url'
+        },
+        AUTO_LOGIN: {
             anyOf: [
                 {
                     type: 'boolean'
@@ -898,9 +1526,31 @@ export const SettingsUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Smtp Ssl'
+            title: 'Auto Login'
         },
-        SMTP_PORT: {
+        LDAP_ENABLED: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Enabled'
+        },
+        LDAP_HOST: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Host'
+        },
+        LDAP_PORT: {
             anyOf: [
                 {
                     type: 'integer'
@@ -909,27 +1559,88 @@ export const SettingsUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Smtp Port'
+            title: 'Ldap Port'
+        },
+        LDAP_BIND_DN: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Bind Dn'
+        },
+        LDAP_BIND_PASSWORD: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Bind Password'
+        },
+        LDAP_BASE_DN: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Base Dn'
+        },
+        LDAP_USER_FILTER: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap User Filter'
+        },
+        LDAP_EMAIL_ATTRIBUTE: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Email Attribute'
+        },
+        LDAP_USERNAME_ATTRIBUTE: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Username Attribute'
+        },
+        LDAP_FULLNAME_ATTRIBUTE: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ldap Fullname Attribute'
         }
     },
     type: 'object',
     title: 'SettingsUpdate'
-} as const;
-
-export const TaskSchema = {
-    properties: {
-        task_id: {
-            type: 'string',
-            title: 'Task Id'
-        },
-        message: {
-            type: 'string',
-            title: 'Message'
-        }
-    },
-    type: 'object',
-    required: ['task_id', 'message'],
-    title: 'Task'
 } as const;
 
 export const TaskCreateSchema = {
@@ -960,7 +1671,7 @@ export const TaskCreateSchema = {
             maxLength: 255,
             title: 'Celery Task Name'
         },
-        task_args: {
+        celery_task_args: {
             anyOf: [
                 {
                     type: 'string'
@@ -969,9 +1680,9 @@ export const TaskCreateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Args'
+            title: 'Celery Task Args'
         },
-        task_kwargs: {
+        celery_task_kwargs: {
             anyOf: [
                 {
                     type: 'string'
@@ -980,7 +1691,7 @@ export const TaskCreateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Kwargs'
+            title: 'Celery Task Kwargs'
         },
         scheduled_time: {
             anyOf: [
@@ -1188,9 +1899,42 @@ export const TaskExecutionPublicSchema = {
             format: 'uuid',
             title: 'Task Id'
         },
+        task_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Task Name'
+        },
         celery_task_id: {
             type: 'string',
             title: 'Celery Task Id'
+        },
+        celery_task_args: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Celery Task Args'
+        },
+        celery_task_kwargs: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Celery Task Kwargs'
         },
         status: {
             type: 'string',
@@ -1199,8 +1943,7 @@ export const TaskExecutionPublicSchema = {
         started_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1211,8 +1954,7 @@ export const TaskExecutionPublicSchema = {
         completed_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1242,28 +1984,6 @@ export const TaskExecutionPublicSchema = {
             ],
             title: 'Traceback'
         },
-        args: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Args'
-        },
-        kwargs: {
-            anyOf: [
-                {
-                    type: 'string'
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Kwargs'
-        },
         worker: {
             anyOf: [
                 {
@@ -1289,8 +2009,7 @@ export const TaskExecutionPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1301,8 +2020,7 @@ export const TaskExecutionPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1364,7 +2082,7 @@ export const TaskPublicSchema = {
             type: 'string',
             title: 'Celery Task Name'
         },
-        task_args: {
+        celery_task_args: {
             anyOf: [
                 {
                     type: 'string'
@@ -1373,9 +2091,9 @@ export const TaskPublicSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Args'
+            title: 'Celery Task Args'
         },
-        task_kwargs: {
+        celery_task_kwargs: {
             anyOf: [
                 {
                     type: 'string'
@@ -1384,13 +2102,12 @@ export const TaskPublicSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Kwargs'
+            title: 'Celery Task Kwargs'
         },
         scheduled_time: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1517,8 +2234,7 @@ export const TaskPublicSchema = {
         last_run_time: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1529,8 +2245,7 @@ export const TaskPublicSchema = {
         next_run_time: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1562,8 +2277,7 @@ export const TaskPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1574,8 +2288,7 @@ export const TaskPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1591,7 +2304,7 @@ export const TaskPublicSchema = {
 
 export const TaskStatusSchema = {
     type: 'string',
-    enum: ['pending', 'running', 'success', 'failed', 'canceled', 'disabled'],
+    enum: ['pending', 'started', 'running', 'success', 'failed', 'revoked', 'disabled'],
     title: 'TaskStatus',
     description: '任务状态'
 } as const;
@@ -1648,7 +2361,7 @@ export const TaskUpdateSchema = {
             ],
             title: 'Celery Task Name'
         },
-        task_args: {
+        celery_task_args: {
             anyOf: [
                 {
                     type: 'string'
@@ -1657,9 +2370,9 @@ export const TaskUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Args'
+            title: 'Celery Task Args'
         },
-        task_kwargs: {
+        celery_task_kwargs: {
             anyOf: [
                 {
                     type: 'string'
@@ -1668,7 +2381,7 @@ export const TaskUpdateSchema = {
                     type: 'null'
                 }
             ],
-            title: 'Task Kwargs'
+            title: 'Celery Task Kwargs'
         },
         scheduled_time: {
             anyOf: [
@@ -1811,6 +2524,41 @@ export const TaskUpdateSchema = {
                 }
             ],
             title: 'Enabled'
+        },
+        last_run_time: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Last Run Time'
+        },
+        next_run_time: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Next Run Time'
+        },
+        celery_task_id: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Celery Task Id'
         },
         owner_id: {
             anyOf: [
@@ -2004,8 +2752,7 @@ export const UserPrivateSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -2016,8 +2763,7 @@ export const UserPrivateSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -2090,8 +2836,7 @@ export const UserPublicSchema = {
         created_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -2102,8 +2847,7 @@ export const UserPublicSchema = {
         updated_at: {
             anyOf: [
                 {
-                    type: 'string',
-                    format: 'date-time'
+                    type: 'string'
                 },
                 {
                     type: 'null'

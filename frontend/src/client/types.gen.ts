@@ -114,6 +114,45 @@ export type ItemUpdate = {
     owner_id?: (string | null);
 };
 
+export type MenuCreate = {
+    label: string;
+    icon?: (string | null);
+    to?: (string | null);
+    url?: (string | null);
+    target?: (string | null);
+    component?: (string | null);
+    clazz?: (string | null);
+    is_hidden?: boolean;
+    parent_id?: (string | null);
+};
+
+export type MenuPublic = {
+    label: string;
+    icon?: (string | null);
+    to?: (string | null);
+    url?: (string | null);
+    target?: (string | null);
+    component?: (string | null);
+    clazz?: (string | null);
+    is_hidden?: boolean;
+    parent_id?: (string | null);
+    id: string;
+    children?: Array<MenuPublic>;
+    items?: Array<MenuPublic>;
+};
+
+export type MenuUpdate = {
+    label?: (string | null);
+    icon?: (string | null);
+    to?: (string | null);
+    url?: (string | null);
+    target?: (string | null);
+    component?: (string | null);
+    clazz?: (string | null);
+    is_hidden?: (boolean | null);
+    parent_id?: (string | null);
+};
+
 export type Message = {
     message: string;
 };
@@ -128,10 +167,31 @@ export type NewPassword = {
  */
 export type PeriodicScheduleType = 'crontab' | 'interval';
 
+export type PermissionCreate = {
+    name: string;
+    description?: (string | null);
+};
+
+export type PermissionPublic = {
+    id: string;
+    name: string;
+    description?: (string | null);
+};
+
+export type PermissionUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+};
+
 export type PrivateUserCreate = {
     email: string;
     password: string;
     full_name?: (string | null);
+};
+
+export type RoleCreate = {
+    name: string;
+    description?: (string | null);
 };
 
 export type RolePublic = {
@@ -140,22 +200,49 @@ export type RolePublic = {
     description?: (string | null);
 };
 
+export type RoleUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+};
+
+export type RoleWithPermissionsPublic = {
+    id: string;
+    name: string;
+    description?: (string | null);
+    permissions?: Array<PermissionPublic>;
+};
+
 export type SettingsUpdate = {
     PROJECT_NAME?: (string | null);
     SENTRY_DSN?: (string | null);
     SMTP_HOST?: (string | null);
+    SMTP_PORT?: (number | null);
     SMTP_USER?: (string | null);
     SMTP_PASSWORD?: (string | null);
-    EMAILS_FROM_EMAIL?: (string | null);
-    EMAILS_FROM_NAME?: (string | null);
     SMTP_TLS?: (boolean | null);
     SMTP_SSL?: (boolean | null);
-    SMTP_PORT?: (number | null);
-};
-
-export type Task = {
-    task_id: string;
-    message: string;
+    EMAILS_FROM_EMAIL?: (string | null);
+    EMAILS_FROM_NAME?: (string | null);
+    OIDC_ENABLED?: (boolean | null);
+    OIDC_NAME?: (string | null);
+    OIDC_AUTH_URL?: (string | null);
+    OIDC_TOKEN_URL?: (string | null);
+    OIDC_USERINFO_URL?: (string | null);
+    OIDC_CLIENT_ID?: (string | null);
+    OIDC_CLIENT_SECRET?: (string | null);
+    OIDC_SCOPES?: (string | null);
+    SIGNOUT_REDIRECT_URL?: (string | null);
+    AUTO_LOGIN?: (boolean | null);
+    LDAP_ENABLED?: (boolean | null);
+    LDAP_HOST?: (string | null);
+    LDAP_PORT?: (number | null);
+    LDAP_BIND_DN?: (string | null);
+    LDAP_BIND_PASSWORD?: (string | null);
+    LDAP_BASE_DN?: (string | null);
+    LDAP_USER_FILTER?: (string | null);
+    LDAP_EMAIL_ATTRIBUTE?: (string | null);
+    LDAP_USERNAME_ATTRIBUTE?: (string | null);
+    LDAP_FULLNAME_ATTRIBUTE?: (string | null);
 };
 
 export type TaskCreate = {
@@ -163,8 +250,8 @@ export type TaskCreate = {
     description?: (string | null);
     task_type?: TaskType;
     celery_task_name: string;
-    task_args?: (string | null);
-    task_kwargs?: (string | null);
+    celery_task_args?: (string | null);
+    celery_task_kwargs?: (string | null);
     scheduled_time?: (string | null);
     periodic_schedule_type?: (PeriodicScheduleType | null);
     crontab_minute?: (string | null);
@@ -187,14 +274,15 @@ export type TaskCreate = {
 export type TaskExecutionPublic = {
     id: string;
     task_id: string;
+    task_name?: (string | null);
     celery_task_id: string;
+    celery_task_args?: (string | null);
+    celery_task_kwargs?: (string | null);
     status: string;
     started_at?: (string | null);
     completed_at?: (string | null);
     result?: (string | null);
     traceback?: (string | null);
-    args?: (string | null);
-    kwargs?: (string | null);
     worker?: (string | null);
     runtime?: (number | null);
     created_at?: (string | null);
@@ -212,8 +300,8 @@ export type TaskPublic = {
     description?: (string | null);
     task_type: TaskType;
     celery_task_name: string;
-    task_args?: (string | null);
-    task_kwargs?: (string | null);
+    celery_task_args?: (string | null);
+    celery_task_kwargs?: (string | null);
     scheduled_time?: (string | null);
     periodic_schedule_type?: (PeriodicScheduleType | null);
     crontab_minute?: (string | null);
@@ -243,7 +331,7 @@ export type TasksPublic = {
 /**
  * 任务状态
  */
-export type TaskStatus = 'pending' | 'running' | 'success' | 'failed' | 'canceled' | 'disabled';
+export type TaskStatus = 'pending' | 'started' | 'running' | 'success' | 'failed' | 'revoked' | 'disabled';
 
 /**
  * 任务类型
@@ -255,8 +343,8 @@ export type TaskUpdate = {
     description?: (string | null);
     task_type?: (TaskType | null);
     celery_task_name?: (string | null);
-    task_args?: (string | null);
-    task_kwargs?: (string | null);
+    celery_task_args?: (string | null);
+    celery_task_kwargs?: (string | null);
     scheduled_time?: (string | null);
     periodic_schedule_type?: (PeriodicScheduleType | null);
     crontab_minute?: (string | null);
@@ -270,6 +358,9 @@ export type TaskUpdate = {
     interval_days?: (number | null);
     status?: (TaskStatus | null);
     enabled?: (boolean | null);
+    last_run_time?: (string | null);
+    next_run_time?: (string | null);
+    celery_task_id?: (string | null);
     owner_id?: (string | null);
 };
 
@@ -471,9 +562,7 @@ export type ItemDeleteItemData = {
 
 export type ItemDeleteItemResponse = (Message);
 
-export type LoginGetLoginConfigResponse = ({
-    [key: string]: unknown;
-});
+export type LoginGetLoginConfigResponse = (unknown);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_Login_login_access_token;
@@ -507,20 +596,126 @@ export type LoginRegisterData = {
 
 export type LoginRegisterResponse = (UserPublic);
 
-export type OpenApiOpenapiTestData = {
-    xAppId: string;
-    xSign: string;
-    xTimestamp: number;
-    xTraceId: string;
+export type LoginLoginOidcResponse = (unknown);
+
+export type LoginLoginOidcCallbackData = {
+    code: string;
 };
 
-export type OpenApiOpenapiTestResponse = (ApplicationPublic);
+export type LoginLoginOidcCallbackResponse = (unknown);
+
+export type LoginLogoutOidcResponse = (unknown);
+
+export type MenuReadMenuData = {
+    menuId: string;
+};
+
+export type MenuReadMenuResponse = (MenuPublic);
+
+export type MenuCreateMenuData = {
+    requestBody: MenuCreate;
+};
+
+export type MenuCreateMenuResponse = (MenuPublic);
+
+export type MenuUpdateMenuData = {
+    menuId: string;
+    requestBody: MenuUpdate;
+};
+
+export type MenuUpdateMenuResponse = (MenuPublic);
+
+export type MenuDeleteMenuData = {
+    menuId: string;
+};
+
+export type MenuDeleteMenuResponse = (Message);
+
+export type OpenApiOpenapiDemoResponse = (ApplicationPublic);
+
+export type PermissionReadPermissionsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type PermissionReadPermissionsResponse = (Array<PermissionPublic>);
+
+export type PermissionCreatePermissionData = {
+    requestBody: PermissionCreate;
+};
+
+export type PermissionCreatePermissionResponse = (PermissionPublic);
+
+export type PermissionReadPermissionData = {
+    permissionId: string;
+};
+
+export type PermissionReadPermissionResponse = (PermissionPublic);
+
+export type PermissionUpdatePermissionData = {
+    permissionId: string;
+    requestBody: PermissionUpdate;
+};
+
+export type PermissionUpdatePermissionResponse = (PermissionPublic);
+
+export type PermissionDeletePermissionData = {
+    permissionId: string;
+};
+
+export type PermissionDeletePermissionResponse = (Message);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
 };
 
 export type PrivateCreateUserResponse = (UserPrivate);
+
+export type RoleReadRolesData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type RoleReadRolesResponse = (Array<RolePublic>);
+
+export type RoleCreateRoleData = {
+    requestBody: RoleCreate;
+};
+
+export type RoleCreateRoleResponse = (RolePublic);
+
+export type RoleReadRoleData = {
+    roleId: string;
+};
+
+export type RoleReadRoleResponse = (RoleWithPermissionsPublic);
+
+export type RoleUpdateRoleData = {
+    requestBody: RoleUpdate;
+    roleId: string;
+};
+
+export type RoleUpdateRoleResponse = (RolePublic);
+
+export type RoleDeleteRoleData = {
+    roleId: string;
+};
+
+export type RoleDeleteRoleResponse = (Message);
+
+export type RoleAddPermissionToRoleData = {
+    permissionId: string;
+    roleId: string;
+};
+
+export type RoleAddPermissionToRoleResponse = (RoleWithPermissionsPublic);
+
+export type RoleRemovePermissionFromRoleData = {
+    permissionId: string;
+    roleId: string;
+};
+
+export type RoleRemovePermissionFromRoleResponse = (RoleWithPermissionsPublic);
 
 export type SettingsGetSettingsResponse = (unknown);
 
@@ -529,27 +724,6 @@ export type SettingsUpdateSettingsData = {
 };
 
 export type SettingsUpdateSettingsResponse = (unknown);
-
-export type TaskGetRegisteredTasksResponse = (Array<(string)>);
-
-export type TaskGetAllTaskExecutionsData = {
-    limit?: number;
-    skip?: number;
-};
-
-export type TaskGetAllTaskExecutionsResponse = (TaskExecutionsPublic);
-
-export type TaskGetExecutionData = {
-    executionId: string;
-};
-
-export type TaskGetExecutionResponse = (TaskExecutionPublic);
-
-export type TaskDeleteExecutionData = {
-    executionId: string;
-};
-
-export type TaskDeleteExecutionResponse = (Message);
 
 export type TaskReadTasksData = {
     limit?: number;
@@ -563,6 +737,8 @@ export type TaskCreateTaskData = {
 };
 
 export type TaskCreateTaskResponse = (TaskPublic);
+
+export type TaskGetRegisteredTasksResponse = (Array<(string)>);
 
 export type TaskReadTaskData = {
     taskId: string;
@@ -601,6 +777,25 @@ export type TaskDisableTaskData = {
 
 export type TaskDisableTaskResponse = (TaskPublic);
 
+export type TaskGetAllTaskExecutionsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type TaskGetAllTaskExecutionsResponse = (TaskExecutionsPublic);
+
+export type TaskGetExecutionData = {
+    executionId: string;
+};
+
+export type TaskGetExecutionResponse = (TaskExecutionPublic);
+
+export type TaskDeleteExecutionData = {
+    executionId: string;
+};
+
+export type TaskDeleteExecutionResponse = (Message);
+
 export type TaskGetTaskExecutionStatusData = {
     taskId: string;
 };
@@ -626,7 +821,7 @@ export type UserCreateUserData = {
     requestBody: UserCreate;
 };
 
-export type UserCreateUserResponse = (UserPublic);
+export type UserCreateUserResponse = (UserPrivate);
 
 export type UserReadUserMeResponse = (UserPrivate);
 
@@ -679,13 +874,7 @@ export type UserUploadAvatarData = {
     formData: Body_User_upload_avatar;
 };
 
-export type UserUploadAvatarResponse = (UserPrivate);
-
-export type UserGetUserAvatarData = {
-    userId: string;
-};
-
-export type UserGetUserAvatarResponse = (unknown);
+export type UserUploadAvatarResponse = (UserPublic);
 
 export type UtilTestEmailData = {
     emailTo: string;
@@ -694,21 +883,3 @@ export type UtilTestEmailData = {
 export type UtilTestEmailResponse = (Message);
 
 export type UtilHealthCheckResponse = (boolean);
-
-export type UtilTestCeleryEndpointData = {
-    msg: string;
-};
-
-export type UtilTestCeleryEndpointResponse = (Task);
-
-export type UtilTriggerLongTaskData = {
-    seconds: number;
-};
-
-export type UtilTriggerLongTaskResponse = (Task);
-
-export type UtilGetTaskStatusData = {
-    taskId: string;
-};
-
-export type UtilGetTaskStatusResponse = (unknown);

@@ -1,13 +1,16 @@
 <script setup>
 import { UserService } from '@/client';
+import { AdminService } from '@/service/AdminService';
 import { getAvatarUrl } from '@/utils';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
+import Select from 'primevue/select';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
 
 const toast = useToast();
 const dt = ref();
 const users = ref(null);
+const roles = ref([]);
 const currentUser = ref(null);
 const userDialog = ref(false);
 const deleteUserDialog = ref(false);
@@ -22,10 +25,26 @@ const loading = ref(true);
 
 onMounted(() => {
     loadUsers();
+    loadRoles();
     UserService.readUserMe().then((data) => {
         currentUser.value = data;
     });
 });
+
+const loadRoles = () => {
+    AdminService.getRoles().then((data) => {
+        // The API returns { roles: [...], total: ... }
+        // We need to assign the array to roles.value
+        if (data && Array.isArray(data.roles)) {
+            roles.value = data.roles;
+        } else if (Array.isArray(data)) {
+            // Fallback if API changes to return array directly
+            roles.value = data;
+        } else {
+            roles.value = [];
+        }
+    });
+};
 
 const loadUsers = () => {
     loading.value = true;
@@ -94,6 +113,9 @@ const saveUser = async () => {
 
 const editUser = (editUser) => {
     user.value = { ...editUser };
+    if (user.value.role) {
+        user.value.role_id = user.value.role.id;
+    }
     userDialog.value = true;
 };
 
@@ -188,6 +210,11 @@ const deleteSelectedUsers = async () => {
                     </template>
                 </Column>
                 <Column field="email" header="Email" sortable style="min-width: 16rem"></Column>
+                <Column field="role.name" header="Role" sortable style="min-width: 10rem">
+                    <template #body="{ data }">
+                        {{ data.role ? data.role.name : 'N/A' }}
+                    </template>
+                </Column>
                 <Column field="is_active" header="Active" dataType="boolean" style="min-width: 6rem">
                     <template #body="{ data }">
                         <i class="pi" :class="{ 'pi-check-circle text-green-500': data.is_active, 'pi-times-circle text-red-400': !data.is_active }"></i>
@@ -223,6 +250,10 @@ const deleteSelectedUsers = async () => {
                     <label for="password" class="block font-bold mb-3">Password</label>
                     <InputText id="password" v-model.trim="user.password" required="true" :invalid="submitted && !user.password" fluid />
                     <small v-if="submitted && !user.password" class="text-red-500">Password is required.</small>
+                </div>
+                <div>
+                    <label for="role" class="block font-bold mb-3">Role</label>
+                    <Select id="role" v-model="user.role_id" :options="roles" optionLabel="name" optionValue="id" placeholder="Select a Role" fluid showClear class="w-full" />
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">

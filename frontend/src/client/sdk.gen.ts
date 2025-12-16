@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, OpenApiOpenapiTestData, OpenApiOpenapiTestResponse, PrivateCreateUserData, PrivateCreateUserResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskGetRegisteredTasksResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserUploadAvatarData, UserUploadAvatarResponse, UserGetUserAvatarData, UserGetUserAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse, UtilTestCeleryEndpointData, UtilTestCeleryEndpointResponse, UtilTriggerLongTaskData, UtilTriggerLongTaskResponse, UtilGetTaskStatusData, UtilGetTaskStatusResponse } from './types.gen';
+import type { ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, LoginLoginOidcResponse, LoginLoginOidcCallbackData, LoginLoginOidcCallbackResponse, LoginLogoutOidcResponse, MenuReadMenuData, MenuReadMenuResponse, MenuCreateMenuData, MenuCreateMenuResponse, MenuUpdateMenuData, MenuUpdateMenuResponse, MenuDeleteMenuData, MenuDeleteMenuResponse, OpenApiOpenapiDemoResponse, PermissionReadPermissionsData, PermissionReadPermissionsResponse, PermissionCreatePermissionData, PermissionCreatePermissionResponse, PermissionReadPermissionData, PermissionReadPermissionResponse, PermissionUpdatePermissionData, PermissionUpdatePermissionResponse, PermissionDeletePermissionData, PermissionDeletePermissionResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleReadRolesData, RoleReadRolesResponse, RoleCreateRoleData, RoleCreateRoleResponse, RoleReadRoleData, RoleReadRoleResponse, RoleUpdateRoleData, RoleUpdateRoleResponse, RoleDeleteRoleData, RoleDeleteRoleResponse, RoleAddPermissionToRoleData, RoleAddPermissionToRoleResponse, RoleRemovePermissionFromRoleData, RoleRemovePermissionFromRoleResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskGetRegisteredTasksResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserUploadAvatarData, UserUploadAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse } from './types.gen';
 
 export class ApplicationService {
     /**
@@ -588,36 +588,270 @@ export class LoginService {
             }
         });
     }
+    
+    /**
+     * Login Oidc
+     * Redirect to OpenID Connect provider for login
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static loginOidc(): CancelablePromise<LoginLoginOidcResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/login/oidc'
+        });
+    }
+    
+    /**
+     * Login Oidc Callback
+     * Callback for OpenID Connect login
+     * @param data The data for the request.
+     * @param data.code
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static loginOidcCallback(data: LoginLoginOidcCallbackData): CancelablePromise<LoginLoginOidcCallbackResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/login/oidc/callback',
+            query: {
+                code: data.code
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Logout Oidc
+     * Redirect to OpenID Connect provider for logout
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static logoutOidc(): CancelablePromise<LoginLogoutOidcResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/logout/oidc'
+        });
+    }
+}
+
+export class MenuService {
+    /**
+     * Read Menu
+     * Get menu by ID.
+     * @param data The data for the request.
+     * @param data.menuId
+     * @returns MenuPublic Successful Response
+     * @throws ApiError
+     */
+    public static readMenu(data: MenuReadMenuData): CancelablePromise<MenuReadMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menus/',
+            query: {
+                menu_id: data.menuId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Menu
+     * Create new menu.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MenuPublic Successful Response
+     * @throws ApiError
+     */
+    public static createMenu(data: MenuCreateMenuData): CancelablePromise<MenuCreateMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/menus/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Menu
+     * Update a menu.
+     * @param data The data for the request.
+     * @param data.menuId
+     * @param data.requestBody
+     * @returns MenuPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateMenu(data: MenuUpdateMenuData): CancelablePromise<MenuUpdateMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/menus/{menu_id}',
+            path: {
+                menu_id: data.menuId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Menu
+     * Delete a menu.
+     * @param data The data for the request.
+     * @param data.menuId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteMenu(data: MenuDeleteMenuData): CancelablePromise<MenuDeleteMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/menus/{menu_id}',
+            path: {
+                menu_id: data.menuId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
 }
 
 export class OpenApiService {
     /**
-     * Openapi Test
-     * Test OpenAPI authentication.
+     * Openapi Demo
+     * OpenAPI demo endpoint.
+     *
      * Requires headers:
      * - X-App-Id: Application ID
      * - X-Timestamp: Current timestamp
      * - X-Sign: Signature
      * - X-Trace-Id: Trace ID
+     *
      * Signature generation:
      * HMAC-SHA256(app_key, "app_id={app_id}&timestamp={timestamp}&trace_id={trace_id}")
-     * @param data The data for the request.
-     * @param data.xAppId
-     * @param data.xTimestamp
-     * @param data.xSign
-     * @param data.xTraceId
      * @returns ApplicationPublic Successful Response
      * @throws ApiError
      */
-    public static openapiTest(data: OpenApiOpenapiTestData): CancelablePromise<OpenApiOpenapiTestResponse> {
+    public static openapiDemo(): CancelablePromise<OpenApiOpenapiDemoResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/openapi/test',
-            headers: {
-                'X-App-Id': data.xAppId,
-                'X-Timestamp': data.xTimestamp,
-                'X-Sign': data.xSign,
-                'X-Trace-Id': data.xTraceId
+            url: '/api/v1/openapi/demo'
+        });
+    }
+}
+
+export class PermissionService {
+    /**
+     * Read Permissions
+     * Retrieve permissions.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns PermissionPublic Successful Response
+     * @throws ApiError
+     */
+    public static readPermissions(data: PermissionReadPermissionsData = {}): CancelablePromise<PermissionReadPermissionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/permissions/',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Permission
+     * Create new permission.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PermissionPublic Successful Response
+     * @throws ApiError
+     */
+    public static createPermission(data: PermissionCreatePermissionData): CancelablePromise<PermissionCreatePermissionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/permissions/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Permission
+     * Get permission by ID.
+     * @param data The data for the request.
+     * @param data.permissionId
+     * @returns PermissionPublic Successful Response
+     * @throws ApiError
+     */
+    public static readPermission(data: PermissionReadPermissionData): CancelablePromise<PermissionReadPermissionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/permissions/{permission_id}',
+            path: {
+                permission_id: data.permissionId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Permission
+     * Update a permission.
+     * @param data The data for the request.
+     * @param data.permissionId
+     * @param data.requestBody
+     * @returns PermissionPublic Successful Response
+     * @throws ApiError
+     */
+    public static updatePermission(data: PermissionUpdatePermissionData): CancelablePromise<PermissionUpdatePermissionResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/permissions/{permission_id}',
+            path: {
+                permission_id: data.permissionId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Permission
+     * Delete a permission.
+     * @param data The data for the request.
+     * @param data.permissionId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deletePermission(data: PermissionDeletePermissionData): CancelablePromise<PermissionDeletePermissionResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/permissions/{permission_id}',
+            path: {
+                permission_id: data.permissionId
             },
             errors: {
                 422: 'Validation Error'
@@ -641,6 +875,163 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class RoleService {
+    /**
+     * Read Roles
+     * Retrieve roles.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns RolePublic Successful Response
+     * @throws ApiError
+     */
+    public static readRoles(data: RoleReadRolesData = {}): CancelablePromise<RoleReadRolesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/roles/',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Role
+     * Create new role.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RolePublic Successful Response
+     * @throws ApiError
+     */
+    public static createRole(data: RoleCreateRoleData): CancelablePromise<RoleCreateRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/roles/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Role
+     * Get role by ID.
+     * @param data The data for the request.
+     * @param data.roleId
+     * @returns RoleWithPermissionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRole(data: RoleReadRoleData): CancelablePromise<RoleReadRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/roles/{role_id}',
+            path: {
+                role_id: data.roleId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Role
+     * Update a role.
+     * @param data The data for the request.
+     * @param data.roleId
+     * @param data.requestBody
+     * @returns RolePublic Successful Response
+     * @throws ApiError
+     */
+    public static updateRole(data: RoleUpdateRoleData): CancelablePromise<RoleUpdateRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/roles/{role_id}',
+            path: {
+                role_id: data.roleId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Role
+     * Delete a role.
+     * @param data The data for the request.
+     * @param data.roleId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteRole(data: RoleDeleteRoleData): CancelablePromise<RoleDeleteRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/roles/{role_id}',
+            path: {
+                role_id: data.roleId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Add Permission To Role
+     * Add a permission to a role.
+     * @param data The data for the request.
+     * @param data.roleId
+     * @param data.permissionId
+     * @returns RoleWithPermissionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static addPermissionToRole(data: RoleAddPermissionToRoleData): CancelablePromise<RoleAddPermissionToRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/roles/{role_id}/permissions/{permission_id}',
+            path: {
+                role_id: data.roleId,
+                permission_id: data.permissionId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Permission From Role
+     * Remove a permission from a role.
+     * @param data The data for the request.
+     * @param data.roleId
+     * @param data.permissionId
+     * @returns RoleWithPermissionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static removePermissionFromRole(data: RoleRemovePermissionFromRoleData): CancelablePromise<RoleRemovePermissionFromRoleResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/roles/{role_id}/permissions/{permission_id}',
+            path: {
+                role_id: data.roleId,
+                permission_id: data.permissionId
+            },
             errors: {
                 422: 'Validation Error'
             }
@@ -683,84 +1074,6 @@ export class SettingsService {
 
 export class TaskService {
     /**
-     * Get Registered Tasks
-     * Get all registered Celery tasks.
-     * @returns string Successful Response
-     * @throws ApiError
-     */
-    public static getRegisteredTasks(): CancelablePromise<TaskGetRegisteredTasksResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/tasks/registered'
-        });
-    }
-    
-    /**
-     * Get All Task Executions
-     * 获取所有任务执行记录（仅管理员或自己的任务）
-     * @param data The data for the request.
-     * @param data.skip
-     * @param data.limit
-     * @returns TaskExecutionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static getAllTaskExecutions(data: TaskGetAllTaskExecutionsData = {}): CancelablePromise<TaskGetAllTaskExecutionsResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/tasks/executions/all',
-            query: {
-                skip: data.skip,
-                limit: data.limit
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get Execution
-     * 获取执行记录详情
-     * @param data The data for the request.
-     * @param data.executionId
-     * @returns TaskExecutionPublic Successful Response
-     * @throws ApiError
-     */
-    public static getExecution(data: TaskGetExecutionData): CancelablePromise<TaskGetExecutionResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/tasks/executions/{execution_id}',
-            path: {
-                execution_id: data.executionId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Execution
-     * 删除执行记录
-     * @param data The data for the request.
-     * @param data.executionId
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deleteExecution(data: TaskDeleteExecutionData): CancelablePromise<TaskDeleteExecutionResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/tasks/executions/{execution_id}',
-            path: {
-                execution_id: data.executionId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
      * Read Tasks
      * Retrieve tasks.
      * @param data The data for the request.
@@ -800,6 +1113,19 @@ export class TaskService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Get Registered Tasks
+     * Get all registered Celery tasks.
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static getRegisteredTasks(): CancelablePromise<TaskGetRegisteredTasksResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/registered'
         });
     }
     
@@ -933,6 +1259,71 @@ export class TaskService {
     }
     
     /**
+     * Get All Task Executions
+     * 获取所有任务执行记录（仅管理员或自己的任务）
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns TaskExecutionsPublic Successful Response
+     * @throws ApiError
+     */
+    public static getAllTaskExecutions(data: TaskGetAllTaskExecutionsData = {}): CancelablePromise<TaskGetAllTaskExecutionsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/executions/all',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Get Execution
+     * 获取执行记录详情
+     * @param data The data for the request.
+     * @param data.executionId
+     * @returns TaskExecutionPublic Successful Response
+     * @throws ApiError
+     */
+    public static getExecution(data: TaskGetExecutionData): CancelablePromise<TaskGetExecutionResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/tasks/executions/{execution_id}',
+            path: {
+                execution_id: data.executionId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Execution
+     * 删除执行记录
+     * @param data The data for the request.
+     * @param data.executionId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteExecution(data: TaskDeleteExecutionData): CancelablePromise<TaskDeleteExecutionResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/tasks/executions/{execution_id}',
+            path: {
+                execution_id: data.executionId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Get Task Execution Status
      * Get task execution status.
      * @param data The data for the request.
@@ -1010,7 +1401,7 @@ export class UserService {
      * Create new user.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns UserPublic Successful Response
+     * @returns UserPrivate Successful Response
      * @throws ApiError
      */
     public static createUser(data: UserCreateUserData): CancelablePromise<UserCreateUserResponse> {
@@ -1200,10 +1591,10 @@ export class UserService {
     
     /**
      * Upload Avatar
-     * Upload avatar for current user.
+     * Upload avatar.
      * @param data The data for the request.
      * @param data.formData
-     * @returns UserPrivate Successful Response
+     * @returns UserPublic Successful Response
      * @throws ApiError
      */
     public static uploadAvatar(data: UserUploadAvatarData): CancelablePromise<UserUploadAvatarResponse> {
@@ -1212,28 +1603,6 @@ export class UserService {
             url: '/api/v1/users/me/avatar',
             formData: data.formData,
             mediaType: 'multipart/form-data',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get User Avatar
-     * Get user avatar image by user ID.
-     * This endpoint serves as a proxy to the MinIO storage.
-     * @param data The data for the request.
-     * @param data.userId
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static getUserAvatar(data: UserGetUserAvatarData): CancelablePromise<UserGetUserAvatarResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/users/avatar/{user_id}',
-            path: {
-                user_id: data.userId
-            },
             errors: {
                 422: 'Validation Error'
             }
@@ -1272,67 +1641,6 @@ export class UtilService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/utils/healthz/'
-        });
-    }
-    
-    /**
-     * Test Celery Endpoint
-     * Test Celery worker.
-     * @param data The data for the request.
-     * @param data.msg
-     * @returns Task Successful Response
-     * @throws ApiError
-     */
-    public static testCeleryEndpoint(data: UtilTestCeleryEndpointData): CancelablePromise<UtilTestCeleryEndpointResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/utils/test-celery/',
-            query: {
-                msg: data.msg
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Trigger Long Task
-     * @param data The data for the request.
-     * @param data.seconds
-     * @returns Task Successful Response
-     * @throws ApiError
-     */
-    public static triggerLongTask(data: UtilTriggerLongTaskData): CancelablePromise<UtilTriggerLongTaskResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/utils/long-task/',
-            query: {
-                seconds: data.seconds
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Get Task Status
-     * @param data The data for the request.
-     * @param data.taskId
-     * @returns unknown Successful Response
-     * @throws ApiError
-     */
-    public static getTaskStatus(data: UtilGetTaskStatusData): CancelablePromise<UtilGetTaskStatusResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/utils/task-status/{task_id}',
-            path: {
-                task_id: data.taskId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
         });
     }
 }

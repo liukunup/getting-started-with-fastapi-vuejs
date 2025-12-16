@@ -1,156 +1,15 @@
 <script setup>
-import { ref } from 'vue';
-
+import { ref, onMounted } from 'vue';
+import { MenuService } from '@/service/MenuService';
 import AppMenuItem from './AppMenuItem.vue';
 
-const model = ref([
+const model = ref([]);
+
+const staticMenu = [
     {
         label: 'Home',
         items: [
-            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'Items', icon: 'pi pi-fw pi-list', to: '/items' },
-            { label: 'Groups', icon: 'pi pi-fw pi-users', to: '/groups' },
-            { label: 'Applications', icon: 'pi pi-fw pi-box', to: '/applications' },
-            { label: 'Tasks', icon: 'pi pi-fw pi-clock', to: '/tasks' },
-            { label: 'Task Executions', icon: 'pi pi-fw pi-history', to: '/task-executions' },
-            { label: 'Profile', icon: 'pi pi-fw pi-user', to: '/profile' }
-        ]
-    },
-    {
-        label: 'Admin',
-        items: [
-            { label: 'Celery', icon: 'pi pi-fw pi-chart-line', to: '/celery' },
-            { label: 'Users', icon: 'pi pi-fw pi-user', to: '/users' },
-            { label: 'Settings', icon: 'pi pi-fw pi-cog', to: '/settings' }
-        ]
-    },
-    {
-        label: 'UI Components',
-        items: [
-            { label: 'Form Layout', icon: 'pi pi-fw pi-id-card', to: '/uikit/formlayout' },
-            { label: 'Input', icon: 'pi pi-fw pi-check-square', to: '/uikit/input' },
-            { label: 'Button', icon: 'pi pi-fw pi-mobile', to: '/uikit/button', class: 'rotated-icon' },
-            { label: 'Table', icon: 'pi pi-fw pi-table', to: '/uikit/table' },
-            { label: 'List', icon: 'pi pi-fw pi-list', to: '/uikit/list' },
-            { label: 'Tree', icon: 'pi pi-fw pi-share-alt', to: '/uikit/tree' },
-            { label: 'Panel', icon: 'pi pi-fw pi-tablet', to: '/uikit/panel' },
-            { label: 'Overlay', icon: 'pi pi-fw pi-clone', to: '/uikit/overlay' },
-            { label: 'Media', icon: 'pi pi-fw pi-image', to: '/uikit/media' },
-            { label: 'Menu', icon: 'pi pi-fw pi-bars', to: '/uikit/menu' },
-            { label: 'Message', icon: 'pi pi-fw pi-comment', to: '/uikit/message' },
-            { label: 'File', icon: 'pi pi-fw pi-file', to: '/uikit/file' },
-            { label: 'Chart', icon: 'pi pi-fw pi-chart-bar', to: '/uikit/charts' },
-            { label: 'Timeline', icon: 'pi pi-fw pi-calendar', to: '/uikit/timeline' },
-            { label: 'Misc', icon: 'pi pi-fw pi-circle', to: '/uikit/misc' }
-        ]
-    },
-    {
-        label: 'Prime Blocks',
-        icon: 'pi pi-fw pi-prime',
-        items: [
-            {
-                label: 'Free Blocks',
-                icon: 'pi pi-fw pi-eye',
-                to: '/blocks'
-            },
-            {
-                label: 'All Blocks',
-                icon: 'pi pi-fw pi-globe',
-                url: 'https://blocks.primevue.org/',
-                target: '_blank'
-            }
-        ]
-    },
-    {
-        label: 'Pages',
-        icon: 'pi pi-fw pi-briefcase',
-        to: '/pages',
-        items: [
-            {
-                label: 'Landing',
-                icon: 'pi pi-fw pi-globe',
-                to: '/landing'
-            },
-            {
-                label: 'Auth',
-                icon: 'pi pi-fw pi-user',
-                items: [
-                    {
-                        label: 'Login',
-                        icon: 'pi pi-fw pi-sign-in',
-                        to: '/auth/login'
-                    },
-                    {
-                        label: 'Error',
-                        icon: 'pi pi-fw pi-times-circle',
-                        to: '/auth/error'
-                    },
-                    {
-                        label: 'Access Denied',
-                        icon: 'pi pi-fw pi-lock',
-                        to: '/auth/access'
-                    }
-                ]
-            },
-            {
-                label: 'Crud',
-                icon: 'pi pi-fw pi-pencil',
-                to: '/pages/crud'
-            },
-            {
-                label: 'Not Found',
-                icon: 'pi pi-fw pi-exclamation-circle',
-                to: '/pages/notfound'
-            },
-            {
-                label: 'Empty',
-                icon: 'pi pi-fw pi-circle-off',
-                to: '/pages/empty'
-            }
-        ]
-    },
-    {
-        label: 'Hierarchy',
-        items: [
-            {
-                label: 'Submenu 1',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 1.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 1.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.2', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 1.1.3', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 1.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 1.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            },
-            {
-                label: 'Submenu 2',
-                icon: 'pi pi-fw pi-bookmark',
-                items: [
-                    {
-                        label: 'Submenu 2.1',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [
-                            { label: 'Submenu 2.1.1', icon: 'pi pi-fw pi-bookmark' },
-                            { label: 'Submenu 2.1.2', icon: 'pi pi-fw pi-bookmark' }
-                        ]
-                    },
-                    {
-                        label: 'Submenu 2.2',
-                        icon: 'pi pi-fw pi-bookmark',
-                        items: [{ label: 'Submenu 2.2.1', icon: 'pi pi-fw pi-bookmark' }]
-                    }
-                ]
-            }
+            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }
         ]
     },
     {
@@ -169,7 +28,30 @@ const model = ref([
             }
         ]
     }
-]);
+];
+
+const mapMenu = (menu) => {
+    return {
+        label: menu.label,
+        icon: menu.icon,
+        to: menu.to,
+        url: menu.url,
+        target: menu.target,
+        class: menu.clazz,
+        visible: !menu.is_hidden,
+        items: menu.items && menu.items.length > 0 ? menu.items.map(mapMenu) : undefined
+    };
+};
+
+onMounted(async () => {
+    try {
+        const menus = await MenuService.getMenus();
+        model.value = menus.map(mapMenu);
+    } catch (e) {
+        console.error("Failed to load menus", e);
+        model.value = staticMenu;
+    }
+});
 </script>
 
 <template>

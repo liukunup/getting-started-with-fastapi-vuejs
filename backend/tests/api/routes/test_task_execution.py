@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from app.core.database import engine
 from app.model.task import Task
 from app.model.task_execution import TaskExecution
-from backend.app.celery.handlers import task_prerun_handler
+from app.worker.handlers import task_prerun_handler
 from fastapi.testclient import TestClient
 from app.core.config import settings
 

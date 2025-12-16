@@ -31,7 +31,7 @@ ENV PYTHONPATH=/app
 
 COPY ./scripts /app/scripts
 
-COPY ./pyproject.toml ./uv.lock ./alembic.ini ./README.md /app/
+COPY ./pyproject.toml ./uv.lock ./alembic.ini ./README.md ./rbac_model.conf /app/
 
 COPY ./app /app/app
 COPY ./tests /app/tests

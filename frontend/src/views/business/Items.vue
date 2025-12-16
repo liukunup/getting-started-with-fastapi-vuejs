@@ -175,7 +175,12 @@ const deleteSelectedItems = async () => {
                         {{ formatDate(new Date(data.created_at)) }}
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 12rem">
+                <Column field="updated_at" header="Updated At" sortable style="min-width: 12rem">
+                    <template #body="{ data }">
+                        {{ formatDate(new Date(data.updated_at)) }}
+                    </template>
+                </Column>
+                <Column :exportable="false" style="min-width: 6rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editItem(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteItem(slotProps.data)" />

@@ -12,10 +12,12 @@ from app.api.deps import (
     SessionDep,
     get_current_active_superuser,
 )
+from app.core.casbin import enforcer
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.core.storage import storage
 from app.model.base import Message
+from app.model.menu import Menu, MenuPublic
 from app.model.user import (
     UpdatePassword,
     User,
@@ -309,6 +311,57 @@ def force_logout(session: SessionDep, cache: CacheDep, user_id: uuid.UUID) -> Me
     cache.redis.set(f"blacklist:user:{user_id}", datetime.now(timezone.utc).timestamp())
 
     return Message(message="User forced to logout")
+
+
+@router.get(
+    "/me/menu", response_model=list[MenuPublic], response_model_exclude_none=True
+)
+def read_user_menu(session: SessionDep, current_user: CurrentUser) -> list[MenuPublic]:
+    """
+    Get current user menu.
+    """
+    # 1. Fetch all menus
+    menus = session.exec(select(Menu)).all()
+
+    # 2. Build map
+    menu_map = {}
+    for m in menus:
+        mp = MenuPublic.model_validate(m)
+        menu_map[m.id] = mp
+
+    # 3. Build tree
+    roots = []
+    for menu in menus:
+        if menu.parent_id is None:
+            roots.append(menu_map[menu.id])
+        elif menu.parent_id in menu_map:
+            parent = menu_map[menu.parent_id]
+            if parent.items is None:
+                parent.items = []
+            parent.items.append(menu_map[menu.id])
+
+    # 4. Filter tree
+    def filter_node(nodes: list[MenuPublic]) -> list[MenuPublic]:
+        filtered = []
+        for node in nodes:
+            # Check permission
+            is_accessible = False
+            if current_user.is_superuser:
+                is_accessible = True
+            elif node.label:
+                subject = (
+                    f"menu:{current_user.role.name}" if current_user.role else None
+                )
+                is_accessible = enforcer.enforce(subject, node.label, "visible")
+
+            # Decide whether to keep this node
+            if node.label:
+                if is_accessible:
+                    filtered.append(node)
+
+        return filtered
+
+    return filter_node(roots)
 
 
 @router.post("/me/avatar", response_model=UserPublic)
