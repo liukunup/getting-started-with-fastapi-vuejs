@@ -18,7 +18,7 @@ from app.model.user import User
 router = APIRouter(tags=["Group"], prefix="/groups")
 
 
-@router.get("/", response_model=GroupsPublic)
+@router.get("/", response_model=GroupsPublic, summary="Retrieve groups")
 def read_groups(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> GroupsPublic:
@@ -56,7 +56,7 @@ def read_groups(
     return GroupsPublic(groups=groups, total=total)
 
 
-@router.get("/{group_id}", response_model=GroupPublic)
+@router.get("/{group_id}", response_model=GroupPublic, summary="Get group by ID")
 def read_group(
     session: SessionDep, current_user: CurrentUser, group_id: uuid.UUID
 ) -> GroupPublic:
@@ -73,7 +73,7 @@ def read_group(
     return group
 
 
-@router.post("/", response_model=GroupPublic)
+@router.post("/", response_model=GroupPublic, summary="Create new group")
 def create_group(
     *, session: SessionDep, current_user: CurrentUser, group_in: GroupCreate
 ) -> GroupPublic:
@@ -100,7 +100,7 @@ def create_group(
     return group
 
 
-@router.put("/{group_id}", response_model=GroupPublic)
+@router.put("/{group_id}", response_model=GroupPublic, summary="Update a group")
 def update_group(
     *,
     session: SessionDep,
@@ -143,7 +143,7 @@ def update_group(
     return group
 
 
-@router.delete("/{group_id}", response_model=Message)
+@router.delete("/{group_id}", response_model=Message, summary="Delete a group")
 def delete_group(
     *, session: SessionDep, current_user: CurrentUser, group_id: uuid.UUID
 ) -> Message:

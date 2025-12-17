@@ -1,6 +1,6 @@
 <script setup>
 import { GroupService, UserService } from '@/client';
-import { getAvatarUrl } from '@/utils';
+import { formatDateTime, getAvatarUrl } from '@/utils';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -45,15 +45,6 @@ const loadGroups = () => {
             group.user_names = group.members ? group.members.map((u) => u.displayName).join(', ') : '';
         });
         loading.value = false;
-    });
-};
-
-const formatDate = (value) => {
-    if (!value) return '';
-    return value.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
     });
 };
 
@@ -182,14 +173,14 @@ const deleteSelectedGroups = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
-                <Column field="owner.full_name" header="Owner" sortable style="min-width: 10rem">
+                <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>
+                <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
+                <Column field="owner.full_name" header="Owner" sortable style="min-width: 8rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
-                <Column field="user_names" header="Users" sortable style="min-width: 12rem">
+                <Column field="user_names" header="Users" sortable style="min-width: 8rem">
                     <template #body="{ data }">
                         <AvatarGroup v-if="data.members && data.members.length > 0">
                             <Avatar v-for="member in data.members.slice(0, 4)" :key="member.id" :image="getAvatarUrl(member.avatar)" size="normal" shape="circle" />
@@ -197,7 +188,12 @@ const deleteSelectedGroups = async () => {
                         </AvatarGroup>
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 6rem">
+                <Column field="created_at" header="Created At" sortable style="min-width: 8rem">
+                    <template #body="{ data }">
+                        {{ formatDateTime(new Date(data.created_at)) }}
+                    </template>
+                </Column>
+                <Column :exportable="false" style="min-width: 8rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editGroup(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteGroup(slotProps.data)" />

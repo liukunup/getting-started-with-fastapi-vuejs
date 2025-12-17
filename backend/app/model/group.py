@@ -17,7 +17,6 @@ class GroupBase(SQLModel):
 
 
 class GroupCreate(GroupBase):
-    owner_id: uuid.UUID | None = None
     member_ids: list[uuid.UUID] | None = []
 
 

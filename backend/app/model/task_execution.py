@@ -1,27 +1,14 @@
 import uuid
 from datetime import datetime
-from enum import Enum
 from typing import TYPE_CHECKING, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
 from .base import BaseDataModel, DateTime
+from .task import TaskStatus
 
 if TYPE_CHECKING:
     from .task import Task
-
-
-class TaskExecutionStatus(str, Enum):
-    """任务执行状态"""
-
-    PENDING = "pending"  # 等待中
-    STARTED = "started"  # 已开始
-    RUNNING = "running"  # 运行中
-    SUCCESS = "success"  # 执行成功
-    FAILED = "failed"  # 执行失败
-    RETRYING = "retrying"  # 重试中
-    REVOKED = "revoked"  # 已撤销
-    DISABLED = "disabled"  # 已禁用
 
 
 class TaskExecutionBase(SQLModel):
@@ -30,7 +17,7 @@ class TaskExecutionBase(SQLModel):
     celery_task_id: str = Field(max_length=255, nullable=False, unique=True, index=True)
     celery_task_args: str | None = Field(default=None)  # JSON格式的参数
     celery_task_kwargs: str | None = Field(default=None)  # JSON格式的关键字参数
-    status: str = Field(max_length=20, default=TaskExecutionStatus.PENDING)
+    status: str = Field(max_length=20, default=TaskStatus.PENDING)
     started_at: datetime | None = Field(default=None)
     completed_at: datetime | None = Field(default=None)
     result: str | None = Field(default=None)  # JSON格式的执行结果

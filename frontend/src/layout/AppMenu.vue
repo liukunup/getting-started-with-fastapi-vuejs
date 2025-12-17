@@ -1,57 +1,11 @@
 <script setup>
-import { ref, onMounted } from 'vue';
-import { MenuService } from '@/service/MenuService';
+import { computed } from 'vue';
+import { useAuthStore } from '@/store/auth';
 import AppMenuItem from './AppMenuItem.vue';
 
-const model = ref([]);
+const authStore = useAuthStore();
 
-const staticMenu = [
-    {
-        label: 'Home',
-        items: [
-            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }
-        ]
-    },
-    {
-        label: 'Get Started',
-        items: [
-            {
-                label: 'Documentation',
-                icon: 'pi pi-fw pi-book',
-                to: '/documentation'
-            },
-            {
-                label: 'View Source',
-                icon: 'pi pi-fw pi-github',
-                url: 'https://github.com/primefaces/sakai-vue',
-                target: '_blank'
-            }
-        ]
-    }
-];
-
-const mapMenu = (menu) => {
-    return {
-        label: menu.label,
-        icon: menu.icon,
-        to: menu.to,
-        url: menu.url,
-        target: menu.target,
-        class: menu.clazz,
-        visible: !menu.is_hidden,
-        items: menu.items && menu.items.length > 0 ? menu.items.map(mapMenu) : undefined
-    };
-};
-
-onMounted(async () => {
-    try {
-        const menus = await MenuService.getMenus();
-        model.value = menus.map(mapMenu);
-    } catch (e) {
-        console.error("Failed to load menus", e);
-        model.value = staticMenu;
-    }
-});
+const model = computed(() => authStore.menus);
 </script>
 
 <template>

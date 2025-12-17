@@ -4,10 +4,12 @@ import { LoginService, OpenAPI } from '@/client';
 import { useToast } from 'primevue/usetoast';
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
 
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
+const authStore = useAuthStore();
 
 const email = ref('');
 const password = ref('');
@@ -24,6 +26,7 @@ onMounted(async () => {
     if (token) {
         localStorage.setItem('token', token);
         localStorage.setItem('loginType', 'oidc');
+        authStore.token = token;
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
         router.push('/');
         return;
@@ -32,12 +35,12 @@ onMounted(async () => {
     try {
         const config = await LoginService.getLoginConfig();
         loginConfig.value = config;
-        
+
         if (config.oidc_enabled && config.oidc_auto_login && !route.query.no_auto_login) {
             onOIDCLogin();
         }
     } catch (e) {
-        console.error("Failed to fetch login config", e);
+        console.error('Failed to fetch login config', e);
     }
 });
 
@@ -48,14 +51,7 @@ const onOIDCLogin = () => {
 const onLogin = async () => {
     loading.value = true;
     try {
-        const data = await LoginService.loginAccessToken({
-            formData: {
-                username: email.value,
-                password: password.value
-            }
-        });
-        // 保存token到localStorage
-        localStorage.setItem('token', data.access_token);
+        await authStore.login(email.value, password.value);
         localStorage.removeItem('loginType');
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
         // 跳转到首页

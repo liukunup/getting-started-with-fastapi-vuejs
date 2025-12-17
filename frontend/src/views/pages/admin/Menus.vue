@@ -1,5 +1,5 @@
 <script setup>
-import { AdminService } from '@/service/AdminService';
+import { MenuService, PolicyService, RoleService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -34,40 +34,42 @@ onMounted(() => {
 });
 
 function loadRolesAndPolicies() {
-    AdminService.getRoles().then((data) => {
+    RoleService.readRoles().then((data) => {
         roles.value = data.roles || data; // Handle if response is wrapped
     });
-    AdminService.getPolicies().then((data) => {
+    PolicyService.readPolicies().then((data) => {
         policies.value = data;
     });
 }
 
 function loadMenus() {
     // Get tree structure (flatten=false)
-    AdminService.getMenus(false).then((data) => {
-        console.log('Menus data:', data);
-        // TreeTable expects a specific node structure with 'data' and 'children'
-        // But if our API returns objects with 'children', we can map it or configure TreeTable
-        // PrimeVue TreeTable can work with arbitrary data if we don't use the TreeNode interface strictly for everything,
-        // but usually it expects { key: '...', data: { ... }, children: [ ... ] }
-        // Let's transform the data to match TreeTable requirements better if needed,
-        // or just pass it if TreeTable supports direct binding (it usually needs TreeNode structure).
-        
-        // Transform API response to TreeNode structure
-        if (Array.isArray(data)) {
-            menus.value = transformToTreeNode(data);
-        } else {
-            console.error('Menus data is not an array:', data);
-            menus.value = [];
-        }
-    }).catch(err => {
-        console.error('Failed to load menus:', err);
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load menus', life: 3000 });
-    });
+    MenuService.readMenus()
+        .then((data) => {
+            console.log('Menus data:', data);
+            // TreeTable expects a specific node structure with 'data' and 'children'
+            // But if our API returns objects with 'children', we can map it or configure TreeTable
+            // PrimeVue TreeTable can work with arbitrary data if we don't use the TreeNode interface strictly for everything,
+            // but usually it expects { key: '...', data: { ... }, children: [ ... ] }
+            // Let's transform the data to match TreeTable requirements better if needed,
+            // or just pass it if TreeTable supports direct binding (it usually needs TreeNode structure).
+
+            // Transform API response to TreeNode structure
+            if (Array.isArray(data)) {
+                menus.value = transformToTreeNode(data);
+            } else {
+                console.error('Menus data is not an array:', data);
+                menus.value = [];
+            }
+        })
+        .catch((err) => {
+            console.error('Failed to load menus:', err);
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load menus', life: 3000 });
+        });
 }
 
 function transformToTreeNode(items) {
-    return items.map(item => ({
+    return items.map((item) => ({
         key: item.id,
         data: item,
         children: item.items ? transformToTreeNode(item.items) : []
@@ -90,12 +92,12 @@ function saveMenu() {
 
     if (menu.value.label?.trim()) {
         if (menu.value.id) {
-            AdminService.updateMenu(menu.value.id, menu.value).then(() => {
+            MenuService.updateMenu({ menuId: menu.value.id, requestBody: menu.value }).then(() => {
                 loadMenus();
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Menu Updated', life: 3000 });
             });
         } else {
-            AdminService.createMenu(menu.value).then(() => {
+            MenuService.createMenu({ requestBody: menu.value }).then(() => {
                 loadMenus();
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Menu Created', life: 3000 });
             });
@@ -117,7 +119,7 @@ function confirmDeleteMenu(item) {
 }
 
 function deleteMenu() {
-    AdminService.deleteMenu(menu.value.id).then(() => {
+    MenuService.deleteMenu({ menuId: menu.value.id }).then(() => {
         loadMenus();
         deleteMenuDialog.value = false;
         menu.value = {};
@@ -131,7 +133,7 @@ function openPermissions(item) {
     const perms = {};
     // Ensure roles is an array
     const roleList = Array.isArray(roles.value) ? roles.value : [];
-    
+
     roleList.forEach((role) => {
         // Check if policy exists: sub=menu:{role.name}, obj={item.label}, act=visible
         const hasPerm = policies.value.some((p) => p.sub === `menu:${role.name}` && p.obj === item.label && p.act === 'visible');
@@ -149,14 +151,14 @@ function togglePermission(role, checked) {
     };
 
     if (checked) {
-        AdminService.addPolicy(policy).then(() => {
+        PolicyService.addPolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = true;
             // Update local policies cache
             policies.value.push(policy);
             toast.add({ severity: 'success', summary: 'Permission Added', detail: `Added access for ${role.name}`, life: 3000 });
         });
     } else {
-        AdminService.removePolicy(policy).then(() => {
+        PolicyService.removePolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = false;
             // Update local policies cache
             policies.value = policies.value.filter((p) => !(p.sub === policy.sub && p.obj === policy.obj && p.act === policy.act));
@@ -170,22 +172,22 @@ function togglePermission(role, checked) {
     <div class="card">
         <Toolbar class="mb-4">
             <template #start>
-                <Button label="New Root Menu" icon="pi pi-plus" class="mr-2" @click="openNew()" />
+                <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
             </template>
         </Toolbar>
 
-        <div v-if="!menus || menus.length === 0" class="p-4 text-center">
-            No menus found.
-        </div>
+        <div v-if="!menus || menus.length === 0" class="p-4 text-center">No menus found.</div>
 
-        <TreeTable
-            v-else
-            :value="menus"
-            tableStyle="min-width: 50rem"
-        >
+        <TreeTable v-else :value="menus" tableStyle="min-width: 50rem">
             <template #header>
                 <div class="flex flex-wrap gap-2 items-center justify-between">
                     <h4 class="m-0">Manage Menus</h4>
+                    <IconField>
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model="filters['global'].value" placeholder="Search..." />
+                    </IconField>
                 </div>
             </template>
 
@@ -199,12 +201,12 @@ function togglePermission(role, checked) {
                 </template>
             </Column>
             <Column field="to" header="To" style="min-width: 12rem"></Column>
-            <Column field="url" header="URL" style="min-width: 12rem"></Column>
             <Column field="component" header="Component" style="min-width: 15rem"></Column>
+            <Column field="url" header="URL" style="min-width: 12rem"></Column>
             <Column field="target" header="Target" style="min-width: 8rem"></Column>
             <Column field="is_hidden" header="Hidden" style="min-width: 6rem">
                 <template #body="slotProps">
-                    <i class="pi" :class="{'pi-check text-green-500': slotProps.node.data.is_hidden, 'pi-times text-red-500': !slotProps.node.data.is_hidden}"></i>
+                    <i class="pi" :class="{ 'pi-check text-green-500': slotProps.node.data.is_hidden, 'pi-times text-red-500': !slotProps.node.data.is_hidden }"></i>
                 </template>
             </Column>
             <Column style="min-width: 12rem">
@@ -216,7 +218,6 @@ function togglePermission(role, checked) {
                 </template>
             </Column>
         </TreeTable>
-
 
         <Dialog v-model:visible="permissionsDialog" :style="{ width: '450px' }" header="Manage Permissions" :modal="true">
             <div class="flex flex-col gap-4">
@@ -239,16 +240,16 @@ function togglePermission(role, checked) {
                     <InputText id="to" v-model.trim="menu.to" fluid />
                 </div>
                 <div>
-                    <label for="url" class="block font-bold mb-3">URL (External Link)</label>
-                    <InputText id="url" v-model.trim="menu.url" fluid />
-                </div>
-                <div>
                     <label for="component" class="block font-bold mb-3">Component</label>
                     <InputText id="component" v-model.trim="menu.component" fluid />
                 </div>
                 <div>
                     <label for="icon" class="block font-bold mb-3">Icon</label>
                     <InputText id="icon" v-model.trim="menu.icon" fluid />
+                </div>
+                <div>
+                    <label for="url" class="block font-bold mb-3">URL (External Link)</label>
+                    <InputText id="url" v-model.trim="menu.url" fluid />
                 </div>
                 <div>
                     <label for="target" class="block font-bold mb-3">Target</label>
@@ -273,7 +274,10 @@ function togglePermission(role, checked) {
         <Dialog v-model:visible="deleteMenuDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl" />
-                <span v-if="menu">Are you sure you want to delete <b>{{ menu.label }}</b>?</span>
+                <span v-if="menu"
+                    >Are you sure you want to delete <b>{{ menu.label }}</b
+                    >?</span
+                >
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteMenuDialog = false" />

@@ -5,20 +5,20 @@ from sqlalchemy.orm import joinedload
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.model.application import (
+from app.model import (
     Application,
     ApplicationCreate,
     ApplicationPrivate,
     ApplicationPublic,
     ApplicationsPublic,
     ApplicationUpdate,
+    Message,
 )
-from app.model.base import Message
 
 router = APIRouter(tags=["Application"], prefix="/apps")
 
 
-@router.get("/", response_model=ApplicationsPublic)
+@router.get("/", response_model=ApplicationsPublic, summary="Retrieve applications")
 def read_applications(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> ApplicationsPublic:
@@ -46,7 +46,7 @@ def read_applications(
     return ApplicationsPublic(applications=apps, total=total)
 
 
-@router.get("/{app_id}", response_model=ApplicationPublic)
+@router.get("/{app_id}", response_model=ApplicationPublic, summary="Get application by ID")
 def read_application(
     session: SessionDep, current_user: CurrentUser, app_id: uuid.UUID
 ) -> ApplicationPublic:
@@ -63,7 +63,7 @@ def read_application(
     return app
 
 
-@router.post("/", response_model=ApplicationPrivate)
+@router.post("/", response_model=ApplicationPrivate, summary="Create new application")
 def create_application(
     *, session: SessionDep, current_user: CurrentUser, app_in: ApplicationCreate
 ) -> ApplicationPrivate:
@@ -86,7 +86,7 @@ def create_application(
     return app
 
 
-@router.put("/{app_id}", response_model=ApplicationPublic)
+@router.put("/{app_id}", response_model=ApplicationPublic, summary="Update an application")
 def update_application(
     *,
     session: SessionDep,
@@ -116,7 +116,7 @@ def update_application(
     return app
 
 
-@router.delete("/{app_id}", response_model=Message)
+@router.delete("/{app_id}", response_model=Message, summary="Delete an application")
 def delete_application(
     *, session: SessionDep, current_user: CurrentUser, app_id: uuid.UUID
 ) -> Message:

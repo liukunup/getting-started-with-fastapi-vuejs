@@ -90,12 +90,14 @@ def upgrade() -> None:
     op.create_index(op.f('ix_apis_deleted_at'), 'apis', ['deleted_at'])
     # Menus
     op.create_table('menus',
-    sa.Column('label', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
+    sa.Column('name', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+    sa.Column('path', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+    sa.Column('component', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
+    sa.Column('label', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('icon', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('to', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('url', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('target', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
-    sa.Column('component', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('clazz', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('is_hidden', sa.Boolean(), nullable=False),
     sa.Column('parent_id', sa.Uuid(), nullable=True),
@@ -108,7 +110,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_menus_label'), 'menus', ['label'])
     op.create_index(op.f('ix_menus_id'), 'menus', ['id'], unique=True)
     op.create_index(op.f('ix_menus_deleted_at'), 'menus', ['deleted_at'])
     # Groups
@@ -174,8 +175,8 @@ def upgrade() -> None:
     sa.Column('description', sqlmodel.sql.sqltypes.AutoString(length=512), nullable=True),
     sa.Column('task_type', sa.String(length=20), nullable=False),
     sa.Column('celery_task_name', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-    sa.Column('celery_task_args', sa.Text(), nullable=True),
-    sa.Column('celery_task_kwargs', sa.Text(), nullable=True),
+    sa.Column('celery_task_args', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('celery_task_kwargs', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('scheduled_time', sa.DateTime(), nullable=True),
     sa.Column('periodic_schedule_type', sa.String(length=20), nullable=True),
     sa.Column('crontab_minute', sqlmodel.sql.sqltypes.AutoString(length=64), nullable=True),
@@ -208,13 +209,13 @@ def upgrade() -> None:
     sa.Column('task_id', sa.Uuid(), nullable=False),
     sa.Column('task_name', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('celery_task_id', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-    sa.Column('celery_task_args', sa.Text(), nullable=True),
-    sa.Column('celery_task_kwargs', sa.Text(), nullable=True),
-    sa.Column('status', sqlmodel.sql.sqltypes.AutoString(length=20), nullable=False),
+    sa.Column('celery_task_args', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('celery_task_kwargs', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('status', sqlmodel.sql.sqltypes.AutoString(length=20), nullable=True),
     sa.Column('started_at', sa.DateTime(), nullable=True),
     sa.Column('completed_at', sa.DateTime(), nullable=True),
-    sa.Column('result', sa.Text(), nullable=True),
-    sa.Column('traceback', sa.Text(), nullable=True),
+    sa.Column('result', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+    sa.Column('traceback', sqlmodel.sql.sqltypes.AutoString(), nullable=True),
     sa.Column('worker', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('runtime', sa.Float(), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),
@@ -273,7 +274,6 @@ def downgrade() -> None:
     # Menus
     op.drop_index(op.f('ix_menus_deleted_at'), table_name='menus')
     op.drop_index(op.f('ix_menus_id'), table_name='menus')
-    op.drop_index(op.f('ix_menus_label'), table_name='menus')
     op.drop_table('menus')
     # Apis
     op.drop_index(op.f('ix_apis_deleted_at'), table_name='apis')

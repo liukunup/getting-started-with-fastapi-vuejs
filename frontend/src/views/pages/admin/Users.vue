@@ -1,7 +1,6 @@
 <script setup>
-import { UserService } from '@/client';
-import { AdminService } from '@/service/AdminService';
-import { getAvatarUrl } from '@/utils';
+import { RoleService, UserService } from '@/client';
+import { formatDateTime, getAvatarUrl } from '@/utils';
 import { FilterMatchMode, FilterOperator } from '@primevue/core/api';
 import Select from 'primevue/select';
 import { useToast } from 'primevue/usetoast';
@@ -32,7 +31,7 @@ onMounted(() => {
 });
 
 const loadRoles = () => {
-    AdminService.getRoles().then((data) => {
+    RoleService.readRoles().then((data) => {
         // The API returns { roles: [...], total: ... }
         // We need to assign the array to roles.value
         if (data && Array.isArray(data.roles)) {
@@ -68,15 +67,6 @@ const loadUsers = () => {
             loading.value = false;
             toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load users', life: 3000 });
         });
-};
-
-const formatDate = (value) => {
-    if (!value) return '';
-    return new Date(value).toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    });
 };
 
 const openNew = () => {
@@ -225,9 +215,9 @@ const deleteSelectedUsers = async () => {
                         <i class="pi" :class="{ 'pi-check-circle text-green-500': data.is_superuser, 'pi-times-circle text-red-400': !data.is_superuser }"></i>
                     </template>
                 </Column>
-                <Column field="created_at" header="Created At" sortable style="min-width: 10rem">
+                <Column field="created_at" header="Created At" sortable style="min-width: 12rem">
                     <template #body="{ data }">
-                        {{ formatDate(data.created_at) }}
+                        {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
                 <Column :exportable="false" style="min-width: 12rem">

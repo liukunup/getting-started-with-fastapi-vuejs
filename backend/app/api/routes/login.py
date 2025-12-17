@@ -27,7 +27,7 @@ from app.utils import (
 router = APIRouter(tags=["Login"])
 
 
-@router.get("/login/config")
+@router.get("/login/config", summary="Get login configuration")
 def get_login_config():
     """
     Get login configuration
@@ -39,7 +39,7 @@ def get_login_config():
     }
 
 
-@router.post("/login/access-token")
+@router.post("/login/access-token", response_model=Token, summary="OAuth2 access token login")
 def login_access_token(
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -60,7 +60,7 @@ def login_access_token(
     )
 
 
-@router.post("/login/test-token", response_model=UserPublic)
+@router.post("/login/test-token", response_model=UserPublic, summary="Test access token")
 def test_token(current_user: CurrentUser) -> UserPublic:
     """
     Test access token
@@ -68,7 +68,7 @@ def test_token(current_user: CurrentUser) -> UserPublic:
     return current_user
 
 
-@router.post("/password-recovery/{email}")
+@router.post("/password-recovery/{email}", summary="Password Recovery")
 def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Message:
     """
     Password Recovery
@@ -103,7 +103,7 @@ def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Messag
     return Message(message="Password recovery email sent")
 
 
-@router.post("/reset-password/")
+@router.post("/reset-password/", summary="Reset password")
 def reset_password(session: SessionDep, body: NewPassword) -> Message:
     """
     Reset password
@@ -136,6 +136,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
     "/password-recovery-html-content/{email}",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
+    summary="HTML Content for Password Recovery",
 )
 def recover_password_html_content(session: SessionDep, email: str) -> Any:
     """
@@ -156,7 +157,7 @@ def recover_password_html_content(session: SessionDep, email: str) -> Any:
     )
 
 
-@router.post("/register", response_model=UserPublic)
+@router.post("/register", response_model=UserPublic, summary="Register a new user")
 def register(session: SessionDep, user_in: UserRegister) -> UserPublic:
     """
     Register a new user
@@ -172,8 +173,8 @@ def register(session: SessionDep, user_in: UserRegister) -> UserPublic:
     return user
 
 
-@router.get("/login/oidc")
-def login_oidc(request: Request):
+@router.get("/login/oidc", summary="OIDC login")
+def login_oidc(request: Request):  # noqa: ARG001
     """
     Redirect to OpenID Connect provider for login
     """
@@ -194,8 +195,8 @@ def login_oidc(request: Request):
     )
 
 
-@router.get("/login/oidc/callback")
-async def login_oidc_callback(session: SessionDep, request: Request, code: str):
+@router.get("/login/oidc/callback", summary="OIDC login callback")
+async def login_oidc_callback(session: SessionDep, request: Request, code: str):  # noqa: ARG001
     """
     Callback for OpenID Connect login
     """
@@ -267,7 +268,7 @@ async def login_oidc_callback(session: SessionDep, request: Request, code: str):
         )
 
 
-@router.get("/logout/oidc")
+@router.get("/logout/oidc", summary="Logout and redirect to OIDC provider")
 def logout_oidc(request: Request):  # noqa: ARG001
     """
     Redirect to OpenID Connect provider for logout

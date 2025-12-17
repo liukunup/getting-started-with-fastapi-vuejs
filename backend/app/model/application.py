@@ -18,12 +18,12 @@ class ApplicationBase(SQLModel):
 
 
 class ApplicationCreate(ApplicationBase):
-    owner_id: uuid.UUID | None = None
+    pass
 
 
 class ApplicationUpdate(ApplicationBase):
     name: str | None = None
-    owner_id: uuid.UUID | None = None
+    is_active: bool | None = None
 
 
 class Application(ApplicationBase, BaseDataModel, table=True):
@@ -44,8 +44,8 @@ class ApplicationPublic(SQLModel):
     id: uuid.UUID
     name: str
     description: str | None = None
-    app_id: uuid.UUID
     is_active: bool
+    app_id: uuid.UUID
     owner: UserPublic | None = None
     created_at: DateTime | None = None
     updated_at: DateTime | None = None

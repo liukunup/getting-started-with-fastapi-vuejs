@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 class UserRegister(SQLModel):
     email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
     full_name: str | None = Field(default=None, max_length=255)
 
 
@@ -34,14 +34,14 @@ class UserBase(SQLModel):
 
 class UserCreate(UserBase):
     username: str | None = Field(default=None, max_length=255)
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=6, max_length=128)
     role_id: uuid.UUID | None = None
 
 
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)
     username: str | None = Field(default=None, max_length=255)
-    password: str | None = Field(default=None, min_length=8, max_length=128)
+    password: str | None = Field(default=None, min_length=6, max_length=128)
     is_active: bool | None = None
     is_superuser: bool | None = None
     role_id: uuid.UUID | None = None
@@ -55,8 +55,8 @@ class UserUpdateMe(SQLModel):
 
 
 class UpdatePassword(SQLModel):
-    current_password: str = Field(min_length=8, max_length=128)
-    new_password: str = Field(min_length=8, max_length=128)
+    current_password: str = Field(min_length=6, max_length=128)
+    new_password: str = Field(min_length=6, max_length=128)
 
 
 class User(UserBase, BaseDataModel, table=True):
@@ -65,17 +65,26 @@ class User(UserBase, BaseDataModel, table=True):
     hashed_password: str
 
     # OpenID Connect subject identifier
-    oidc_sub: str | None = Field(default=None, index=True)
+    oidc_sub: str | None = Field(default=None, nullable=True, index=True)
 
+    # Role
     role_id: uuid.UUID | None = Field(default=None, foreign_key="roles.id")
     role: Role | None = Relationship(back_populates="users")
 
+    # API & Menu
     apis: list["Api"] = Relationship(back_populates="owner")
     menus: list["Menu"] = Relationship(back_populates="owner")
 
-    items: list["Item"] = Relationship(back_populates="owner")
+    # Application
     applications: list["Application"] = Relationship(back_populates="owner")
+
+    # Item
+    items: list["Item"] = Relationship(back_populates="owner")
+
+    # Task
     tasks: list["Task"] = Relationship(back_populates="owner")
+
+    # Group
     groups: list["Group"] = Relationship(back_populates="owner")
     group_members: list["Group"] = Relationship(
         back_populates="members", link_model=GroupMemberLink
@@ -93,7 +102,7 @@ class UserPublic(SQLModel):
 
     @field_validator("avatar", mode="after")
     @classmethod
-    def sign_avatar_url(cls, v: str | None) -> str | None:
+    def presigned_avatar_url(cls, v: str | None) -> str | None:
         if v and v.startswith("http"):
             return v
 
@@ -109,7 +118,6 @@ class UsersPublic(SQLModel):
 
 class UserPrivate(UserPublic):
     email: EmailStr
-    username: str
     is_active: bool
     is_superuser: bool
 

@@ -10,7 +10,6 @@ from jwt.exceptions import InvalidTokenError
 from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
-from app.worker.celery import celery_app
 from app.core import security
 from app.core.cache import Cache, cache
 from app.core.config import settings
@@ -18,6 +17,7 @@ from app.core.database import engine
 from app.core.storage import Storage, storage
 from app.model.base import TokenPayload
 from app.model.user import User
+from app.worker.celery import celery_app
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"

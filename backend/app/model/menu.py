@@ -10,12 +10,14 @@ if TYPE_CHECKING:
 
 
 class MenuBase(SQLModel):
-    label: str = Field(max_length=255, nullable=False, index=True)
+    name: str | None = Field(default=None, max_length=255)
+    path: str | None = Field(default=None, max_length=255)
+    component: str | None = Field(default=None, max_length=255)
+    label: str | None = Field(default=None, max_length=255)
     icon: str | None = Field(default=None, max_length=255)
     to: str | None = Field(default=None, max_length=255)
     url: str | None = Field(default=None, max_length=255)
     target: str | None = Field(default=None, max_length=255)
-    component: str | None = Field(default=None, max_length=255)
     clazz: str | None = Field(default=None, max_length=255)
     is_hidden: bool = Field(default=False)
     parent_id: uuid.UUID | None = Field(default=None)
@@ -26,7 +28,6 @@ class MenuCreate(MenuBase):
 
 
 class MenuUpdate(MenuBase):
-    label: str | None = Field(default=None, max_length=255)
     is_hidden: bool | None = Field(default=None)
 
 
@@ -43,15 +44,23 @@ class Menu(MenuBase, BaseDataModel, table=True):
     owner: Optional["User"] = Relationship(back_populates="menus")
 
 
-class MenuPublic(SQLModel):
+class MenuTreeNode(SQLModel):
     id: uuid.UUID
-    label: str
+    name: str | None = None
+    path: str | None = None
+    component: str | None = None
+    label: str | None = None
     icon: str | None = None
     to: str | None = None
     url: str | None = None
     target: str | None = None
-    component: str | None = None
     clazz: str | None = None
-    is_hidden: bool = False
+    is_hidden: bool
     parent_id: uuid.UUID | None = None
-    items: list["MenuPublic"] | None = None
+    items: list["MenuTreeNode"] | None = None
+    children: list["MenuTreeNode"] | None = None
+
+
+class MenuTreePublic(SQLModel):
+    data: list[MenuTreeNode]
+    total: int

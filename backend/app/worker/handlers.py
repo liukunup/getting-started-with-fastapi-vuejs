@@ -169,8 +169,8 @@ def task_failure_handler(
     task_id=None,
     exception=None,
     traceback=None,
-    einfo=None,
-    *args,
+    einfo=None,  # noqa: ARG001
+    *args,  # noqa: ARG001
     **kwargs,  # noqa: ARG001
 ):
     """

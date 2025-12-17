@@ -25,11 +25,6 @@ class Message(SQLModel):
     message: str
 
 
-class Task(SQLModel):
-    task_id: str
-    message: str
-
-
 class Token(SQLModel):
     access_token: str
 
@@ -45,7 +40,8 @@ class NewPassword(SQLModel):
 
 
 class BaseDataModel(SQLModel):
-    # Common fields for all data models
+    """Base data model with common fields"""
+
     # Primary Key
     id: uuid.UUID = Field(
         default_factory=uuid.uuid4,

@@ -414,18 +414,18 @@ const setNow = () => {
                 <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
                 <Column field="celery_task_name" header="Celery Task" sortable style="min-width: 15rem">
                     <template #body="{ data }">
-                        <span class="text-xs font-mono">{{ data.celery_task_name }}</span>
+                        <span>{{ data.celery_task_name }}</span>
                     </template>
                 </Column>
                 <Column header="Schedule" style="min-width: 15rem">
                     <template #body="{ data }">
-                        <span v-if="data.task_type === 'scheduled'" class="text-sm">
+                        <span v-if="data.task_type === 'scheduled'">
                             {{ formatDate(data.scheduled_time) }}
                         </span>
-                        <span v-else-if="data.task_type === 'periodic'" class="text-xs font-mono">
+                        <span v-else-if="data.task_type === 'periodic'">
                             {{ getCrontabDisplay(data) }}
                         </span>
-                        <span v-else class="text-sm text-gray-500">立即执行</span>
+                        <span v-else>立即执行</span>
                     </template>
                 </Column>
                 <Column field="task_type" header="Type" sortable style="min-width: 8rem">

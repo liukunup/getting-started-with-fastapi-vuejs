@@ -17,7 +17,7 @@ from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.core.storage import storage
 from app.model.base import Message
-from app.model.menu import Menu, MenuPublic
+from app.model.menu import Menu, MenuTreeNode
 from app.model.user import (
     UpdatePassword,
     User,
@@ -38,6 +38,7 @@ router = APIRouter(tags=["User"], prefix="/users")
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPrivate,
+    summary="Retrieve users",
 )
 def read_users(session: SessionDep, offset: int = 0, limit: int = 100) -> UsersPrivate:
     """
@@ -60,6 +61,7 @@ def read_users(session: SessionDep, offset: int = 0, limit: int = 100) -> UsersP
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPrivate,
+    summary="Create new user",
 )
 def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPrivate:
     """
@@ -88,7 +90,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> UserPrivate:
     return user
 
 
-@router.patch("/me", response_model=UserPrivate)
+@router.patch("/me", response_model=UserPrivate, summary="Update own user")
 def update_user_me(
     *,
     session: SessionDep,
@@ -130,7 +132,7 @@ def update_user_me(
     return current_user
 
 
-@router.patch("/me/password", response_model=Message)
+@router.patch("/me/password", response_model=Message, summary="Update own password")
 def update_password_me(
     *,
     session: SessionDep,
@@ -161,7 +163,7 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
-@router.get("/me", response_model=UserPrivate)
+@router.get("/me", response_model=UserPrivate, summary="Get current user")
 def read_user_me(current_user: CurrentUser) -> UserPrivate:
     """
     Get current user.
@@ -169,7 +171,7 @@ def read_user_me(current_user: CurrentUser) -> UserPrivate:
     return current_user
 
 
-@router.delete("/me", response_model=Message)
+@router.delete("/me", response_model=Message, summary="Delete own user")
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Message:
     """
     Delete own user.
@@ -187,7 +189,7 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Message:
     return Message(message="User deleted successfully")
 
 
-@router.post("/signup", response_model=UserPublic)
+@router.post("/signup", response_model=UserPublic, summary="Create new user")
 def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     """
     Create new user without the need to be logged in.
@@ -207,7 +209,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     return user
 
 
-@router.get("/{user_id}", response_model=UserPublic)
+@router.get("/{user_id}", response_model=UserPublic, summary="Get a specific user by id")
 def read_user_by_id(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> UserPublic:
@@ -231,6 +233,7 @@ def read_user_by_id(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=UserPublic,
+    summary="Update a user",
 )
 def update_user(
     *, session: SessionDep, user_id: uuid.UUID, user_in: UserUpdate
@@ -268,7 +271,7 @@ def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
+@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], summary="Delete a user")
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
@@ -297,6 +300,7 @@ def delete_user(
     "/{user_id}/force-logout",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=Message,
+    summary="Force logout a user",
 )
 def force_logout(session: SessionDep, cache: CacheDep, user_id: uuid.UUID) -> Message:
     """
@@ -314,9 +318,11 @@ def force_logout(session: SessionDep, cache: CacheDep, user_id: uuid.UUID) -> Me
 
 
 @router.get(
-    "/me/menu", response_model=list[MenuPublic], response_model_exclude_none=True
+    "/me/menu", response_model=list[MenuTreeNode], response_model_exclude_none=True, summary="Get current user menu"
 )
-def read_user_menu(session: SessionDep, current_user: CurrentUser) -> list[MenuPublic]:
+def read_user_menu(
+    session: SessionDep, current_user: CurrentUser
+) -> list[MenuTreeNode]:
     """
     Get current user menu.
     """
@@ -326,7 +332,7 @@ def read_user_menu(session: SessionDep, current_user: CurrentUser) -> list[MenuP
     # 2. Build map
     menu_map = {}
     for m in menus:
-        mp = MenuPublic.model_validate(m)
+        mp = MenuTreeNode.model_validate(m)
         menu_map[m.id] = mp
 
     # 3. Build tree
@@ -341,30 +347,33 @@ def read_user_menu(session: SessionDep, current_user: CurrentUser) -> list[MenuP
             parent.items.append(menu_map[menu.id])
 
     # 4. Filter tree
-    def filter_node(nodes: list[MenuPublic]) -> list[MenuPublic]:
+    def filter_node(nodes: list[MenuTreeNode]) -> list[MenuTreeNode]:
         filtered = []
         for node in nodes:
             # Check permission
             is_accessible = False
             if current_user.is_superuser:
                 is_accessible = True
-            elif node.label:
+            elif node.name:
                 subject = (
                     f"menu:{current_user.role.name}" if current_user.role else None
                 )
-                is_accessible = enforcer.enforce(subject, node.label, "visible")
+                is_accessible = enforcer.enforce(subject, node.name, "visible")
+
+            # Recursively filter children
+            if node.items:
+                node.items = filter_node(node.items)
 
             # Decide whether to keep this node
-            if node.label:
-                if is_accessible:
-                    filtered.append(node)
+            if is_accessible:
+                filtered.append(node)
 
         return filtered
 
     return filter_node(roots)
 
 
-@router.post("/me/avatar", response_model=UserPublic)
+@router.post("/me/avatar", response_model=UserPublic, summary="Upload avatar")
 def upload_avatar(
     session: SessionDep, current_user: CurrentUser, file: UploadFile = File(...)
 ) -> UserPublic:

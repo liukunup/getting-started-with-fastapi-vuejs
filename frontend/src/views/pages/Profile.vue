@@ -224,10 +224,10 @@ const updatePassword = async () => {
 
 const formatDate = (value) => {
     if (!value) return '';
-    return new Date(value).toLocaleDateString('en-US', {
-        day: '2-digit',
+    return new Date(value).toLocaleString([], {
+        year: 'numeric',
         month: '2-digit',
-        year: 'numeric'
+        day: '2-digit'
     });
 };
 </script>

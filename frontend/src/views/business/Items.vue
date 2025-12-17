@@ -1,6 +1,6 @@
 <script setup>
 import { ItemService } from '@/client';
-import { getAvatarUrl } from '@/utils';
+import { formatDateTime, getAvatarUrl } from '@/utils';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -28,20 +28,6 @@ const loadItems = () => {
     ItemService.readItems().then((data) => {
         items.value = data.items;
         loading.value = false;
-    });
-};
-
-const formatCurrency = (value) => {
-    if (value) return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-    return;
-};
-
-const formatDate = (value) => {
-    if (!value) return '';
-    return value.toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
     });
 };
 
@@ -163,24 +149,24 @@ const deleteSelectedItems = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
-                <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 12rem">
+                <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>
+                <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
+                <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 8rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
-                <Column field="created_at" header="Created At" sortable style="min-width: 12rem">
+                <Column field="created_at" header="Created At" sortable style="min-width: 8rem">
                     <template #body="{ data }">
-                        {{ formatDate(new Date(data.created_at)) }}
+                        {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
-                <Column field="updated_at" header="Updated At" sortable style="min-width: 12rem">
+                <Column field="updated_at" header="Updated At" sortable style="min-width: 8rem">
                     <template #body="{ data }">
-                        {{ formatDate(new Date(data.updated_at)) }}
+                        {{ formatDateTime(new Date(data.updated_at)) }}
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 6rem">
+                <Column :exportable="false" style="min-width: 8rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editItem(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteItem(slotProps.data)" />

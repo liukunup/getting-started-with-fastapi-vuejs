@@ -3,7 +3,108 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, LoginLoginOidcResponse, LoginLoginOidcCallbackData, LoginLoginOidcCallbackResponse, LoginLogoutOidcResponse, MenuReadMenuData, MenuReadMenuResponse, MenuCreateMenuData, MenuCreateMenuResponse, MenuUpdateMenuData, MenuUpdateMenuResponse, MenuDeleteMenuData, MenuDeleteMenuResponse, OpenApiOpenapiDemoResponse, PermissionReadPermissionsData, PermissionReadPermissionsResponse, PermissionCreatePermissionData, PermissionCreatePermissionResponse, PermissionReadPermissionData, PermissionReadPermissionResponse, PermissionUpdatePermissionData, PermissionUpdatePermissionResponse, PermissionDeletePermissionData, PermissionDeletePermissionResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleReadRolesData, RoleReadRolesResponse, RoleCreateRoleData, RoleCreateRoleResponse, RoleReadRoleData, RoleReadRoleResponse, RoleUpdateRoleData, RoleUpdateRoleResponse, RoleDeleteRoleData, RoleDeleteRoleResponse, RoleAddPermissionToRoleData, RoleAddPermissionToRoleResponse, RoleRemovePermissionFromRoleData, RoleRemovePermissionFromRoleResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskGetRegisteredTasksResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserUploadAvatarData, UserUploadAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse } from './types.gen';
+import type { ApiReadApisResponse, ApiCreateApiData, ApiCreateApiResponse, ApiReadApiData, ApiReadApiResponse, ApiUpdateApiData, ApiUpdateApiResponse, ApiDeleteApiData, ApiDeleteApiResponse, ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, LoginLoginOidcResponse, LoginLoginOidcCallbackData, LoginLoginOidcCallbackResponse, LoginLogoutOidcResponse, MenuReadMenusResponse, MenuCreateMenuData, MenuCreateMenuResponse, MenuReadMenuData, MenuReadMenuResponse, MenuUpdateMenuData, MenuUpdateMenuResponse, MenuDeleteMenuData, MenuDeleteMenuResponse, OpenApiOpenapiDemoResponse, PolicyReadPoliciesResponse, PolicyAddPolicyData, PolicyAddPolicyResponse, PolicyRemovePolicyData, PolicyRemovePolicyResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleReadRolesData, RoleReadRolesResponse, RoleCreateRoleData, RoleCreateRoleResponse, RoleReadRoleData, RoleReadRoleResponse, RoleUpdateRoleData, RoleUpdateRoleResponse, RoleDeleteRoleData, RoleDeleteRoleResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskGetRegisteredTasksResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserReadUserMenuResponse, UserUploadAvatarData, UserUploadAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse } from './types.gen';
+
+export class ApiService {
+    /**
+     * Read Apis
+     * Retrieve apis.
+     * @returns ApiTreePublic Successful Response
+     * @throws ApiError
+     */
+    public static readApis(): CancelablePromise<ApiReadApisResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/apis/'
+        });
+    }
+    
+    /**
+     * Create Api
+     * Create new api.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ApiPublic Successful Response
+     * @throws ApiError
+     */
+    public static createApi(data: ApiCreateApiData): CancelablePromise<ApiCreateApiResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/apis/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Api
+     * Get api by ID.
+     * @param data The data for the request.
+     * @param data.apiId
+     * @returns ApiPublic Successful Response
+     * @throws ApiError
+     */
+    public static readApi(data: ApiReadApiData): CancelablePromise<ApiReadApiResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/apis/{api_id}',
+            path: {
+                api_id: data.apiId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Api
+     * Update an api.
+     * @param data The data for the request.
+     * @param data.apiId
+     * @param data.requestBody
+     * @returns ApiPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateApi(data: ApiUpdateApiData): CancelablePromise<ApiUpdateApiResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/apis/{api_id}',
+            path: {
+                api_id: data.apiId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Api
+     * Delete an api.
+     * @param data The data for the request.
+     * @param data.apiId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteApi(data: ApiDeleteApiData): CancelablePromise<ApiDeleteApiResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/apis/{api_id}',
+            path: {
+                api_id: data.apiId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class ApplicationService {
     /**
@@ -639,23 +740,15 @@ export class LoginService {
 
 export class MenuService {
     /**
-     * Read Menu
-     * Get menu by ID.
-     * @param data The data for the request.
-     * @param data.menuId
-     * @returns MenuPublic Successful Response
+     * Read Menus
+     * Retrieve menus.
+     * @returns MenuTreeNode Successful Response
      * @throws ApiError
      */
-    public static readMenu(data: MenuReadMenuData): CancelablePromise<MenuReadMenuResponse> {
+    public static readMenus(): CancelablePromise<MenuReadMenusResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/menus/',
-            query: {
-                menu_id: data.menuId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/menus/'
         });
     }
     
@@ -664,7 +757,7 @@ export class MenuService {
      * Create new menu.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns MenuPublic Successful Response
+     * @returns MenuTreeNode Successful Response
      * @throws ApiError
      */
     public static createMenu(data: MenuCreateMenuData): CancelablePromise<MenuCreateMenuResponse> {
@@ -680,12 +773,33 @@ export class MenuService {
     }
     
     /**
+     * Read Menu
+     * Get menu by ID.
+     * @param data The data for the request.
+     * @param data.menuId
+     * @returns MenuTreeNode Successful Response
+     * @throws ApiError
+     */
+    public static readMenu(data: MenuReadMenuData): CancelablePromise<MenuReadMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menus/{menu_id}',
+            path: {
+                menu_id: data.menuId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Update Menu
      * Update a menu.
      * @param data The data for the request.
      * @param data.menuId
      * @param data.requestBody
-     * @returns MenuPublic Successful Response
+     * @returns MenuTreeNode Successful Response
      * @throws ApiError
      */
     public static updateMenu(data: MenuUpdateMenuData): CancelablePromise<MenuUpdateMenuResponse> {
@@ -738,7 +852,7 @@ export class OpenApiService {
      *
      * Signature generation:
      * HMAC-SHA256(app_key, "app_id={app_id}&timestamp={timestamp}&trace_id={trace_id}")
-     * @returns ApplicationPublic Successful Response
+     * @returns Message Successful Response
      * @throws ApiError
      */
     public static openapiDemo(): CancelablePromise<OpenApiOpenapiDemoResponse> {
@@ -749,42 +863,32 @@ export class OpenApiService {
     }
 }
 
-export class PermissionService {
+export class PolicyService {
     /**
-     * Read Permissions
-     * Retrieve permissions.
-     * @param data The data for the request.
-     * @param data.skip
-     * @param data.limit
-     * @returns PermissionPublic Successful Response
+     * Read Policies
+     * Retrieve all policies.
+     * @returns Policy Successful Response
      * @throws ApiError
      */
-    public static readPermissions(data: PermissionReadPermissionsData = {}): CancelablePromise<PermissionReadPermissionsResponse> {
+    public static readPolicies(): CancelablePromise<PolicyReadPoliciesResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/permissions/',
-            query: {
-                skip: data.skip,
-                limit: data.limit
-            },
-            errors: {
-                422: 'Validation Error'
-            }
+            url: '/api/v1/policies/'
         });
     }
     
     /**
-     * Create Permission
-     * Create new permission.
+     * Add Policy
+     * Add a policy.
      * @param data The data for the request.
      * @param data.requestBody
-     * @returns PermissionPublic Successful Response
+     * @returns boolean Successful Response
      * @throws ApiError
      */
-    public static createPermission(data: PermissionCreatePermissionData): CancelablePromise<PermissionCreatePermissionResponse> {
+    public static addPolicy(data: PolicyAddPolicyData): CancelablePromise<PolicyAddPolicyResponse> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/permissions/',
+            url: '/api/v1/policies/',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -794,65 +898,19 @@ export class PermissionService {
     }
     
     /**
-     * Read Permission
-     * Get permission by ID.
+     * Remove Policy
+     * Remove a policy.
      * @param data The data for the request.
-     * @param data.permissionId
-     * @returns PermissionPublic Successful Response
-     * @throws ApiError
-     */
-    public static readPermission(data: PermissionReadPermissionData): CancelablePromise<PermissionReadPermissionResponse> {
-        return __request(OpenAPI, {
-            method: 'GET',
-            url: '/api/v1/permissions/{permission_id}',
-            path: {
-                permission_id: data.permissionId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Update Permission
-     * Update a permission.
-     * @param data The data for the request.
-     * @param data.permissionId
      * @param data.requestBody
-     * @returns PermissionPublic Successful Response
+     * @returns boolean Successful Response
      * @throws ApiError
      */
-    public static updatePermission(data: PermissionUpdatePermissionData): CancelablePromise<PermissionUpdatePermissionResponse> {
-        return __request(OpenAPI, {
-            method: 'PUT',
-            url: '/api/v1/permissions/{permission_id}',
-            path: {
-                permission_id: data.permissionId
-            },
-            body: data.requestBody,
-            mediaType: 'application/json',
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Delete Permission
-     * Delete a permission.
-     * @param data The data for the request.
-     * @param data.permissionId
-     * @returns Message Successful Response
-     * @throws ApiError
-     */
-    public static deletePermission(data: PermissionDeletePermissionData): CancelablePromise<PermissionDeletePermissionResponse> {
+    public static removePolicy(data: PolicyRemovePolicyData): CancelablePromise<PolicyRemovePolicyResponse> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/permissions/{permission_id}',
-            path: {
-                permission_id: data.permissionId
-            },
+            url: '/api/v1/policies/',
+            body: data.requestBody,
+            mediaType: 'application/json',
             errors: {
                 422: 'Validation Error'
             }
@@ -889,7 +947,7 @@ export class RoleService {
      * @param data The data for the request.
      * @param data.skip
      * @param data.limit
-     * @returns RolePublic Successful Response
+     * @returns RolesPublic Successful Response
      * @throws ApiError
      */
     public static readRoles(data: RoleReadRolesData = {}): CancelablePromise<RoleReadRolesResponse> {
@@ -931,7 +989,7 @@ export class RoleService {
      * Get role by ID.
      * @param data The data for the request.
      * @param data.roleId
-     * @returns RoleWithPermissionsPublic Successful Response
+     * @returns RolePublic Successful Response
      * @throws ApiError
      */
     public static readRole(data: RoleReadRoleData): CancelablePromise<RoleReadRoleResponse> {
@@ -985,52 +1043,6 @@ export class RoleService {
             url: '/api/v1/roles/{role_id}',
             path: {
                 role_id: data.roleId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Add Permission To Role
-     * Add a permission to a role.
-     * @param data The data for the request.
-     * @param data.roleId
-     * @param data.permissionId
-     * @returns RoleWithPermissionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static addPermissionToRole(data: RoleAddPermissionToRoleData): CancelablePromise<RoleAddPermissionToRoleResponse> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/roles/{role_id}/permissions/{permission_id}',
-            path: {
-                role_id: data.roleId,
-                permission_id: data.permissionId
-            },
-            errors: {
-                422: 'Validation Error'
-            }
-        });
-    }
-    
-    /**
-     * Remove Permission From Role
-     * Remove a permission from a role.
-     * @param data The data for the request.
-     * @param data.roleId
-     * @param data.permissionId
-     * @returns RoleWithPermissionsPublic Successful Response
-     * @throws ApiError
-     */
-    public static removePermissionFromRole(data: RoleRemovePermissionFromRoleData): CancelablePromise<RoleRemovePermissionFromRoleResponse> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/roles/{role_id}/permissions/{permission_id}',
-            path: {
-                role_id: data.roleId,
-                permission_id: data.permissionId
             },
             errors: {
                 422: 'Validation Error'
@@ -1586,6 +1598,19 @@ export class UserService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Read User Menu
+     * Get current user menu.
+     * @returns MenuTreeNode Successful Response
+     * @throws ApiError
+     */
+    public static readUserMenu(): CancelablePromise<UserReadUserMenuResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/users/me/menu'
         });
     }
     

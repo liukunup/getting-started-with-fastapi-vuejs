@@ -9,12 +9,12 @@ from app.api.routes import (
     login,
     menu,
     openapi,
+    policy,
     private,
     role,
     task,
     user,
     utils,
-    policy,
 )
 from app.api.routes import (
     settings as settings_route,

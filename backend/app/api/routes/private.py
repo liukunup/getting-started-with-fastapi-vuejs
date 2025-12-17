@@ -15,7 +15,7 @@ class PrivateUserCreate(BaseModel):
 router = APIRouter(tags=["Private"], prefix="/private")
 
 
-@router.post("/users/", response_model=UserPrivate)
+@router.post("/users/", response_model=UserPrivate, summary="Create a new user")
 def create_user(session: SessionDep, user_in: PrivateUserCreate) -> User:
     """
     Create a new user.

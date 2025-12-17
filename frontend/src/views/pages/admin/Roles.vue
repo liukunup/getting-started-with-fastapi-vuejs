@@ -1,5 +1,5 @@
 <script setup>
-import { AdminService } from '@/service/AdminService';
+import { RoleService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -18,15 +18,24 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 
+const formatDate = (value) => {
+    if (!value) return '';
+    return new Date(value).toLocaleDateString('en-US', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+};
+
 onMounted(() => {
     loadRoles();
 });
 
 const loadRoles = () => {
     loading.value = true;
-    AdminService.getRoles()
+    RoleService.readRoles()
         .then((data) => {
-            roles.value = data.roles;
+            roles.value = data.roles || data;
             loading.value = false;
         })
         .catch((error) => {
@@ -52,10 +61,10 @@ const saveRole = async () => {
     if (role.value.name?.trim()) {
         try {
             if (role.value.id) {
-                await AdminService.updateRole(role.value.id, role.value);
+                await RoleService.updateRole({ roleId: role.value.id, requestBody: role.value });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Role Updated', life: 3000 });
             } else {
-                await AdminService.createRole(role.value);
+                await RoleService.createRole({ requestBody: role.value });
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'Role Created', life: 3000 });
             }
             roleDialog.value = false;
@@ -79,7 +88,7 @@ const confirmDeleteRole = (item) => {
 
 const deleteRole = async () => {
     try {
-        await AdminService.deleteRole(role.value.id);
+        await RoleService.deleteRole({ roleId: role.value.id });
         deleteRoleDialog.value = false;
         role.value = {};
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Role Deleted', life: 3000 });
@@ -99,7 +108,7 @@ const confirmDeleteSelected = () => {
 
 const deleteSelectedRoles = async () => {
     try {
-        await Promise.all(selectedRoles.value.map((val) => AdminService.deleteRole(val.id)));
+        await Promise.all(selectedRoles.value.map((val) => RoleService.deleteRole({ roleId: val.id })));
         deleteRolesDialog.value = false;
         selectedRoles.value = null;
         toast.add({ severity: 'success', summary: 'Successful', detail: 'Roles Deleted', life: 3000 });
@@ -184,7 +193,10 @@ const deleteSelectedRoles = async () => {
         <Dialog v-model:visible="deleteRoleDialog" :style="{ width: '450px' }" header="Confirm" :modal="true">
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl" />
-                <span v-if="role">Are you sure you want to delete <b>{{ role.name }}</b>?</span>
+                <span v-if="role"
+                    >Are you sure you want to delete <b>{{ role.name }}</b
+                    >?</span
+                >
             </div>
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteRoleDialog = false" />

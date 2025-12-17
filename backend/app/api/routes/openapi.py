@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(tags=["OpenAPI"], prefix="/openapi")
 
 
-@router.get("/demo", response_model=Message)
+@router.get("/demo", response_model=Message, summary="OpenAPI demo endpoint")
 def openapi_demo() -> Any:
     """
     OpenAPI demo endpoint.

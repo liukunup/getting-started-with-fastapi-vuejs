@@ -23,6 +23,9 @@ app = FastAPI(
     generate_unique_id_function=custom_generate_unique_id,
 )
 
+app.add_middleware(CasbinMiddleware)
+app.add_middleware(OpenApiMiddleware)
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
@@ -32,8 +35,5 @@ if settings.all_cors_origins:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-app.add_middleware(CasbinMiddleware)
-app.add_middleware(OpenApiMiddleware)
 
 app.include_router(api_router, prefix=settings.API_V1_STR)

@@ -16,7 +16,7 @@ class ItemBase(SQLModel):
 
 
 class ItemCreate(ItemBase):
-    owner_id: uuid.UUID | None = None
+    pass
 
 
 class ItemUpdate(ItemBase):

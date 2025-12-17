@@ -5,10 +5,10 @@ from fastapi import APIRouter, HTTPException
 
 from app.api.deps import CeleryDep, CurrentUser
 
-router = APIRouter(prefix="/celery", tags=["celery"])
+router = APIRouter(tags=["Celery"], prefix="/celery")
 
 
-@router.get("/workers")
+@router.get("/workers", summary="Get active Celery workers")
 def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有活跃的Celery Worker信息
@@ -46,7 +46,7 @@ def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         )
 
 
-@router.get("/tasks/active")
+@router.get("/tasks/active", summary="Get active Celery tasks")
 def get_active_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有活跃的任务
@@ -80,7 +80,7 @@ def get_active_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         )
 
 
-@router.get("/tasks/scheduled")
+@router.get("/tasks/scheduled", summary="Get scheduled Celery tasks")
 def get_scheduled_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有计划任务
@@ -114,7 +114,7 @@ def get_scheduled_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any
         )
 
 
-@router.get("/tasks/reserved")
+@router.get("/tasks/reserved", summary="Get reserved Celery tasks")
 def get_reserved_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有保留任务
@@ -147,7 +147,7 @@ def get_reserved_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         )
 
 
-@router.get("/tasks/{task_id}")
+@router.get("/tasks/{task_id}", summary="Get Celery task status")
 def get_task_status(
     task_id: str, current_user: CurrentUser, celery_app: CeleryDep
 ) -> Any:
@@ -180,7 +180,7 @@ def get_task_status(
         )
 
 
-@router.post("/tasks/{task_id}/revoke")
+@router.post("/tasks/{task_id}/revoke", summary="Revoke a Celery task")
 def revoke_task(task_id: str, current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     撤销指定的任务
@@ -195,7 +195,7 @@ def revoke_task(task_id: str, current_user: CurrentUser, celery_app: CeleryDep) 
         raise HTTPException(status_code=500, detail=f"Failed to revoke task: {str(e)}")
 
 
-@router.get("/stats")
+@router.get("/stats", summary="Get Celery statistics")
 def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取Celery统计信息
@@ -237,7 +237,7 @@ def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         )
 
 
-@router.get("/registered-tasks")
+@router.get("/registered-tasks", summary="Get registered Celery tasks")
 def get_registered_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有已注册的任务类型

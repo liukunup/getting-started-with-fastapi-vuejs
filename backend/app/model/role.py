@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from .base import BaseDataModel
+from .base import BaseDataModel, DateTime
 
 if TYPE_CHECKING:
     from .user import User
@@ -32,6 +32,8 @@ class RolePublic(SQLModel):
     id: uuid.UUID
     name: str
     description: str | None = None
+    created_at: DateTime | None = None
+    updated_at: DateTime | None = None
 
 
 class RolesPublic(SQLModel):

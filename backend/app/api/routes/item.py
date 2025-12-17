@@ -17,7 +17,7 @@ from app.model.item import (
 router = APIRouter(tags=["Item"], prefix="/items")
 
 
-@router.get("/", response_model=ItemsPublic)
+@router.get("/", response_model=ItemsPublic, summary="Retrieve items")
 def read_items(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> ItemsPublic:
@@ -42,7 +42,7 @@ def read_items(
     return ItemsPublic(items=items, total=total)
 
 
-@router.get("/{item_id}", response_model=ItemPublic)
+@router.get("/{item_id}", response_model=ItemPublic, summary="Get item by ID")
 def read_item(
     session: SessionDep, current_user: CurrentUser, item_id: uuid.UUID
 ) -> ItemPublic:
@@ -59,7 +59,7 @@ def read_item(
     return item
 
 
-@router.post("/", response_model=ItemPublic)
+@router.post("/", response_model=ItemPublic, summary="Create new item")
 def create_item(
     *, session: SessionDep, current_user: CurrentUser, item_in: ItemCreate
 ) -> ItemPublic:
@@ -77,7 +77,7 @@ def create_item(
     return item
 
 
-@router.put("/{item_id}", response_model=ItemPublic)
+@router.put("/{item_id}", response_model=ItemPublic, summary="Update an item")
 def update_item(
     *,
     session: SessionDep,
@@ -107,7 +107,7 @@ def update_item(
     return item
 
 
-@router.delete("/{item_id}", response_model=Message)
+@router.delete("/{item_id}", response_model=Message, summary="Delete an item")
 def delete_item(
     session: SessionDep, current_user: CurrentUser, item_id: uuid.UUID
 ) -> Message:

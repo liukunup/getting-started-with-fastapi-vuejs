@@ -1,5 +1,5 @@
 <script setup>
-import { AdminService } from '@/service/AdminService';
+import { ApiService, PolicyService, RoleService } from '@/client';
 import { FilterMatchMode } from '@primevue/core/api';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -37,44 +37,46 @@ onMounted(() => {
 });
 
 function loadRolesAndPolicies() {
-    AdminService.getRoles().then((data) => {
+    RoleService.readRoles().then((data) => {
         roles.value = data.roles || data;
     });
-    AdminService.getPolicies().then((data) => {
+    PolicyService.readPolicies().then((data) => {
         policies.value = data;
     });
 }
 
 function loadApis() {
     loading.value = true;
-    AdminService.getApis().then((data) => {
-        console.log('APIs data received:', data);
-        if (data) {
-            if (Array.isArray(data.data)) {
-                apis.value = data.data;
-                expandedKeys.value = {};
-            } else if (Array.isArray(data)) {
-                // Fallback for flat array
-                console.warn('Received flat array, converting to tree nodes');
-                apis.value = data.map(api => ({
-                    key: api.id,
-                    data: api,
-                    children: []
-                }));
+    ApiService.readApis()
+        .then((data) => {
+            console.log('APIs data received:', data);
+            if (data) {
+                if (Array.isArray(data.data)) {
+                    apis.value = data.data;
+                    expandedKeys.value = {};
+                } else if (Array.isArray(data)) {
+                    // Fallback for flat array
+                    console.warn('Received flat array, converting to tree nodes');
+                    apis.value = data.map((api) => ({
+                        key: api.id,
+                        data: api,
+                        children: []
+                    }));
+                } else {
+                    console.warn('Received unexpected data format:', data);
+                    apis.value = [];
+                }
             } else {
-                console.warn('Received unexpected data format:', data);
                 apis.value = [];
             }
-        } else {
-            apis.value = [];
-        }
-        console.log('apis.value set to:', apis.value);
-        loading.value = false;
-    }).catch((error) => {
-        console.error('Failed to load APIs:', error);
-        loading.value = false;
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load APIs', life: 3000 });
-    });
+            console.log('apis.value set to:', apis.value);
+            loading.value = false;
+        })
+        .catch((error) => {
+            console.error('Failed to load APIs:', error);
+            loading.value = false;
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load APIs', life: 3000 });
+        });
 }
 
 function openNew() {
@@ -93,12 +95,12 @@ function saveApi() {
 
     if (api.value.name?.trim()) {
         if (api.value.id) {
-            AdminService.updateApi(api.value.id, api.value).then(() => {
+            ApiService.updateApi({ apiId: api.value.id, requestBody: api.value }).then(() => {
                 loadApis();
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'API Updated', life: 3000 });
             });
         } else {
-            AdminService.createApi(api.value).then(() => {
+            ApiService.createApi({ requestBody: api.value }).then(() => {
                 loadApis();
                 toast.add({ severity: 'success', summary: 'Successful', detail: 'API Created', life: 3000 });
             });
@@ -120,7 +122,7 @@ function confirmDeleteApi(item) {
 }
 
 function deleteApi() {
-    AdminService.deleteApi(api.value.id).then(() => {
+    ApiService.deleteApi({ apiId: api.value.id }).then(() => {
         loadApis();
         deleteApiDialog.value = false;
         api.value = {};
@@ -153,13 +155,13 @@ function togglePermission(role, checked) {
     };
 
     if (checked) {
-        AdminService.addPolicy(policy).then(() => {
+        PolicyService.addPolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = true;
             policies.value.push(policy);
             toast.add({ severity: 'success', summary: 'Permission Added', detail: `Added access for ${role.name}`, life: 3000 });
         });
     } else {
-        AdminService.removePolicy(policy).then(() => {
+        PolicyService.removePolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = false;
             policies.value = policies.value.filter((p) => !(p.sub === policy.sub && p.obj === policy.obj && p.act === policy.act));
             toast.add({ severity: 'success', summary: 'Permission Removed', detail: `Removed access for ${role.name}`, life: 3000 });
@@ -172,15 +174,11 @@ function togglePermission(role, checked) {
     <div class="card">
         <Toolbar class="mb-4">
             <template #start>
-                <Button label="New" icon="pi pi-plus" class="mr-2" @click="openNew" />
+                <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" @click="openNew" />
             </template>
         </Toolbar>
 
-        <TreeTable
-            :value="apis"
-            v-model:expandedKeys="expandedKeys"
-            :loading="loading"
-        >
+        <TreeTable :value="apis" v-model:expandedKeys="expandedKeys" :loading="loading">
             <template #header>
                 <div class="flex flex-wrap gap-2 items-center justify-between">
                     <h4 class="m-0">Manage APIs</h4>

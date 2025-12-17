@@ -16,7 +16,10 @@ class Policy(BaseModel):
 
 
 @router.get(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=list[Policy]
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=list[Policy],
+    summary="Retrieve all policies",
 )
 def read_policies() -> Any:
     """
@@ -28,7 +31,7 @@ def read_policies() -> Any:
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool
+    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool, summary="Add a policy"
 )
 def add_policy(policy: Policy) -> Any:
     """
@@ -39,7 +42,7 @@ def add_policy(policy: Policy) -> Any:
 
 
 @router.delete(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool
+    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool, summary="Remove a policy"
 )
 def remove_policy(policy: Policy) -> Any:
     """

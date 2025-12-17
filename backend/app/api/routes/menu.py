@@ -4,27 +4,32 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
-from app.api.deps import SessionDep, get_current_active_superuser
-from app.model.base import Message
-from app.model.menu import Menu, MenuCreate, MenuPublic, MenuUpdate
+from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.core.casbin import enforcer
+from app.model import Menu, MenuCreate, MenuTreeNode, MenuUpdate, Message
 
 router = APIRouter(tags=["Menu"], prefix="/menus")
 
 
-@router.get("/",     dependencies=[Depends(get_current_active_superuser)], response_model=list[MenuPublic])
+@router.get(
+    "/",
+    response_model=list[MenuTreeNode],
+    summary="Retrieve menus",
+)
 def read_menus(
     session: SessionDep,
-) -> list[MenuPublic]:
+    current_user: CurrentUser,
+) -> list[MenuTreeNode]:
     """
     Retrieve menus.
     """
     # Fetch all menus
     menus = session.exec(select(Menu)).all()
 
-    # Convert to MenuPublic first to avoid modifying DB objects
+    # Convert to MenuTreeNode first to avoid modifying DB objects
     menu_map = {}
     for m in menus:
-        mp = MenuPublic.model_validate(m)
+        mp = MenuTreeNode.model_validate(m)
         mp.items = []
         menu_map[m.id] = mp
 
@@ -37,11 +42,38 @@ def read_menus(
             parent = menu_map[menu.parent_id]
             parent.items.append(menu_map[menu.id])
 
-    print(f"Returning {len(roots)} root menus")
-    return roots
+    # Filter tree
+    def filter_node(nodes: list[MenuTreeNode]) -> list[MenuTreeNode]:
+        filtered = []
+        for node in nodes:
+            # Check permission
+            is_accessible = False
+            if current_user.is_superuser:
+                is_accessible = True
+            elif node.label:
+                subject = (
+                    f"menu:{current_user.role.name}" if current_user.role else None
+                )
+                is_accessible = enforcer.enforce(subject, node.label, "visible")
+
+            # Decide whether to keep this node
+            if is_accessible:
+                # Recursively filter children
+                if node.items:
+                    node.items = filter_node(node.items)
+                filtered.append(node)
+
+        return filtered
+
+    return filter_node(roots)
 
 
-@router.get("/{menu_id}",    dependencies=[Depends(get_current_active_superuser)], response_model=MenuPublic)
+@router.get(
+    "/{menu_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=MenuTreeNode,
+    summary="Get menu by ID",
+)
 def read_menu(
     session: SessionDep,
     menu_id: uuid.UUID,
@@ -57,7 +89,12 @@ def read_menu(
     return menu
 
 
-@router.post("/",     dependencies=[Depends(get_current_active_superuser)], response_model=MenuPublic)
+@router.post(
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=MenuTreeNode,
+    summary="Create new menu",
+)
 def create_menu(
     *,
     session: SessionDep,
@@ -77,7 +114,12 @@ def create_menu(
     return menu
 
 
-@router.put("/{menu_id}",     dependencies=[Depends(get_current_active_superuser)], response_model=MenuPublic)
+@router.put(
+    "/{menu_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=MenuTreeNode,
+    summary="Update a menu",
+)
 def update_menu(
     *,
     session: SessionDep,
@@ -104,7 +146,12 @@ def update_menu(
     return menu
 
 
-@router.delete("/{menu_id}",     dependencies=[Depends(get_current_active_superuser)], response_model=Message)
+@router.delete(
+    "/{menu_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=Message,
+    summary="Delete a menu",
+)
 def delete_menu(
     *,
     session: SessionDep,

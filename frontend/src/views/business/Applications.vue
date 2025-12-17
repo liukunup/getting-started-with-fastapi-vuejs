@@ -1,6 +1,6 @@
 <script setup>
 import { ApplicationService } from '@/client';
-import { getAvatarUrl } from '@/utils';
+import { formatDateTime, getAvatarUrl } from '@/utils';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 import { onMounted, ref } from 'vue';
@@ -33,15 +33,6 @@ const loadApplications = () => {
         //     app.created_at = new Date(app.created_at);
         // });
         loading.value = false;
-    });
-};
-
-const formatDate = (value) => {
-    if (!value) return '';
-    return new Date(value).toLocaleDateString('en-US', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
     });
 };
 
@@ -175,17 +166,16 @@ const copyAppKey = async () => {
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
                 <Column field="app_id" header="App ID" sortable style="min-width: 12rem"></Column>
-                                <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 12rem">
+                <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 12rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
 
-                <Column field="created_at" header="Created At" sortable style="min-width: 10rem">
+                <Column field="created_at" header="Created At" sortable style="min-width: 8rem">
                     <template #body="{ data }">
-                        {{ formatDate(data.created_at) }}
+                        {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
                 <Column :exportable="false" style="min-width: 12rem">
@@ -223,13 +213,7 @@ const copyAppKey = async () => {
                 </div>
                 <div class="flex items-center gap-2">
                     <Textarea :modelValue="newAppKey" readonly class="w-full" rows="5" />
-                    <Button
-                        icon="pi pi-copy"
-                        text
-                        size="large"
-                        class="!w-16 !h-16 !text-2xl"
-                        @click="copyAppKey"
-                    />
+                    <Button icon="pi pi-copy" text size="large" class="!w-16 !h-16 !text-2xl" @click="copyAppKey" />
                 </div>
             </div>
             <template #footer>

@@ -6,10 +6,7 @@ from sqlmodel import Session, or_, select
 from app.core.config import settings
 from app.core.ldap import authenticate as ldap_authenticate
 from app.core.security import get_password_hash, verify_password
-from app.model.role import Role
-from app.model.user import User, UserCreate, UserUpdate
-from app.model.menu import Menu, MenuCreate
-from app.model.api import Api, ApiCreate
+from app.model import Role, User, UserCreate, UserUpdate
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -133,33 +130,3 @@ def authenticate(*, session: Session, username: str, password: str) -> User | No
             return create_user(session=session, user_create=user_create)
 
     return None
-
-
-def create_menu(*, session: Session, menu_create: MenuCreate, owner_id=None) -> Menu:
-    """Create a menu item in the database."""
-
-    menu = Menu.model_validate(menu_create)
-
-    if owner_id:
-        menu.owner_id = owner_id
-
-    session.add(menu)
-    session.commit()
-    session.refresh(menu)
-
-    return menu
-
-
-def create_api(*, session: Session, api_create: ApiCreate, owner_id=None) -> Api:
-    """Create an api in the database."""
-
-    api = Api.model_validate(api_create)
-
-    if owner_id:
-        api.owner_id = owner_id
-
-    session.add(api)
-    session.commit()
-    session.refresh(api)
-
-    return api

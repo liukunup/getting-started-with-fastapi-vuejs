@@ -21,6 +21,7 @@ router = APIRouter(tags=["Role"], prefix="/roles")
     "/",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=RolesPublic,
+    summary="Retrieve roles",
 )
 def read_roles(session: SessionDep, skip: int = 0, limit: int = 1000) -> RolesPublic:
     """
@@ -35,6 +36,7 @@ def read_roles(session: SessionDep, skip: int = 0, limit: int = 1000) -> RolesPu
     "/{role_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=RolePublic,
+    summary="Get role by ID",
 )
 def read_role(session: SessionDep, role_id: uuid.UUID) -> RolePublic:
     """
@@ -49,7 +51,7 @@ def read_role(session: SessionDep, role_id: uuid.UUID) -> RolePublic:
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=RolePublic
+    "/", dependencies=[Depends(get_current_active_superuser)], response_model=RolePublic, summary="Create new role"
 )
 def create_role(session: SessionDep, role_in: RoleCreate) -> Any:
     """
@@ -70,6 +72,7 @@ def create_role(session: SessionDep, role_in: RoleCreate) -> Any:
     "/{role_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=RolePublic,
+    summary="Update a role",
 )
 def update_role(session: SessionDep, role_id: uuid.UUID, role_in: RoleUpdate) -> Any:
     """
@@ -96,6 +99,7 @@ def update_role(session: SessionDep, role_id: uuid.UUID, role_in: RoleUpdate) ->
     "/{role_id}",
     dependencies=[Depends(get_current_active_superuser)],
     response_model=Message,
+    summary="Delete a role",
 )
 def delete_role(session: SessionDep, role_id: uuid.UUID) -> Any:
     """

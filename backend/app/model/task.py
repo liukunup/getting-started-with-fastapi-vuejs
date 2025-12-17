@@ -33,7 +33,6 @@ class TaskStatus(str, Enum):
     """任务状态"""
 
     PENDING = "pending"  # 等待中
-    STARTED = "started"  # 已开始
     RUNNING = "running"  # 运行中
     SUCCESS = "success"  # 成功
     FAILED = "failed"  # 失败
@@ -42,6 +41,7 @@ class TaskStatus(str, Enum):
 
 
 class TaskBase(SQLModel):
+    # 基本信息
     name: str = Field(max_length=255, nullable=False, index=True)
     description: str | None = Field(default=None, max_length=512)
     task_type: TaskType = Field(
@@ -51,7 +51,7 @@ class TaskBase(SQLModel):
     # Celery任务相关
     celery_task_name: str = Field(
         max_length=255, nullable=False
-    )  # Celery任务名称，如 app.api.tasks.demo_async_task
+    )  # Celery任务名称，如 app.worker.tasks.demo_dynamic_task
     celery_task_args: str | None = Field(default=None)  # JSON格式的任务参数
     celery_task_kwargs: str | None = Field(default=None)  # JSON格式的任务关键字参数
 
@@ -87,11 +87,11 @@ class TaskBase(SQLModel):
     next_run_time: datetime | None = Field(default=None)  # 下次执行时间
     celery_task_id: str | None = Field(
         default=None, max_length=255
-    )  # 最近的Celery任务ID
+    )  # 最近一次的Celery任务ID
 
 
 class TaskCreate(TaskBase):
-    owner_id: uuid.UUID | None = None
+    pass
 
 
 class TaskUpdate(SQLModel):

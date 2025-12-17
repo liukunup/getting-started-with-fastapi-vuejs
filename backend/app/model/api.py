@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -48,10 +48,10 @@ class ApiPublic(SQLModel):
 
 class ApiTreeNode(SQLModel):
     key: str
-    data: Dict[str, Any]
-    children: List["ApiTreeNode"] = Field(default_factory=list)
+    data: dict[str, Any]
+    children: list["ApiTreeNode"] = []
 
 
-class ApisTreePublic(SQLModel):
-    data: List[ApiTreeNode]
+class ApiTreePublic(SQLModel):
+    data: list[ApiTreeNode]
     total: int

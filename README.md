@@ -2,60 +2,107 @@
 
 for AI Coding with FastAPI &amp; Vue 3
 
-目标是在AI Coding加持下，快速实现单体应用程序
+目标是在AI Coding加持下，快速实现单体应用程序。
 
-## 技术栈
+## 技术栈 (Tech Stack)
 
-- FastAPI
-- Vue 3
-- PrimeVue
+### Backend
+- **Framework**: FastAPI
+- **ORM**: SQLModel (SQLAlchemy + Pydantic)
+- **Auth**: OAuth2 (JWT), Casbin (RBAC)
+- **Task Queue**: Celery
+- **Storage**: Minio (S3 Compatible)
+- **Database**: PostgreSQL (Default), MySQL, MariaDB, SQLite
 
-## 功能路线
+### Frontend
+- **Framework**: Vue 3
+- **UI Library**: PrimeVue
+- **Build Tool**: Vite
+- **Styling**: TailwindCSS
 
-- 注册（邮箱、密码、昵称可选）
-- 登陆（邮箱/用户名、密码）邮箱前缀提取用户名
-- 找回密码（邮箱，限制每天最多3次）
-- 支持 jwt， access token
-- 管理员功能
-  - 用户的新增、删除、禁用、强制退出登陆态（通过redis黑名单实现），前端表格展示
-  - 修改用户角色
-- 我的（支持头像、邮箱、密码、昵称、用户名的修改，头像存储到minio）
-- RBAC权限（后端管控，有对应功能点才能拉取到数据，否则前端展示无权限空态图）casbin
-- 支持minio、redis、postgresql
-- 数据库支持了"sqlite", "mysql", "postgres", "mariadb"
-- 健康检查
-- demo功能
-  - 定时任务 支持corntab
-  - 请求时异步执行后台长任务（提交/查询/取消）
-  - items 增删查改/表格展示（一个user对应多个items）
-  - groups 增删查改/表格展示（与user多对多）
-- 支持生成app_id app_key来访问系统开发接口
-- 前后端打包到一个docker镜像
+### Infrastructure
+- Docker & Docker Compose
+- Redis (Cache & Broker)
+- Nginx (Reverse Proxy)
 
+## 功能特性 (Features)
 
-## 数据库表
+### 认证与授权 (Authentication & Authorization)
+- **多方式登录**: 支持邮箱/密码登录，OIDC (OpenID Connect) 登录，LDAP 登录。
+- **注册与找回密码**: 完整的注册流程，支持邮箱找回密码（含频率限制）。
+- **JWT & Access Token**: 标准的 OAuth2 流程。
+- **RBAC 权限控制**: 基于 Casbin 的角色权限控制，支持后端 API 粒度的权限管理。
+- **强制登出**: 基于 Redis 黑名单机制，支持管理员强制用户下线。
 
-- id uuid4
-- created_at
-- updated_at
-- deleted_at
+### 系统管理 (System Management)
+- **用户管理**: 用户的增删改查、禁用/启用、角色分配。
+- **角色管理**: 自定义角色及其权限配置。
+- **菜单管理**: 动态菜单配置，前端路由由后端根据用户权限动态生成。
+- **API 管理**: 系统 API 的管理与权限关联。
+- **系统设置**: 系统级别的参数配置。
 
-## 部署
+### 业务功能 (Business Features)
+- **应用管理 (Applications)**: 生成 App ID 和 App Key，用于外部系统接入。
+- **任务管理 (Tasks)**:
+  - **定时任务**: 支持 Crontab 表达式的定时任务调度。
+  - **异步任务**: 基于 Celery 的后台长任务处理，支持任务状态查询与取消。
+- **示例模块**:
+  - **Items**: 基础的增删改查示例（一对多关系）。
+  - **Groups**: 多对多关系示例。
 
-- makefile
-- docker-compose.yml
-- 支持https
+### 个人中心 (User Profile)
+- **个人信息**: 修改昵称、邮箱、头像（上传至 Minio）。
+- **安全设置**: 修改密码。
 
-## 步骤
+### 基础设施与运维 (Infrastructure & DevOps)
+- **数据库支持**: 兼容 PostgreSQL, MySQL, MariaDB, SQLite，通过配置切换。
+- **对象存储**: 集成 Minio，支持文件上传与预签名 URL。
+- **健康检查**: 系统健康状态监控。
+- **Sentry 集成**: 错误追踪与监控。
+- **Docker 部署**: 提供完整的 Docker Compose 编排与 Makefile 快捷命令。
 
-1. 设计数据库表（启动）
-2. 实现功能
-3. 代码善后
-4. 生成文档，方便后续ai开发
+## 数据库模型 (Database Models)
 
-docker compose 优化
+所有模型均继承自基础模型，包含以下通用字段：
+- `id`: UUID4
+- `created_at`: 创建时间
+- `updated_at`: 更新时间
+- `deleted_at`: 软删除时间
 
-AI对话接入
-权限与动态菜单
-强制登出
-整体测试
+## 快速开始 (Getting Started)
+
+### 本地开发
+
+1. **启动后端**:
+   ```bash
+   cd backend
+   # 配置 .env 文件
+   bash scripts/start-dev.sh
+   ```
+
+2. **启动前端**:
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+### Docker 部署
+
+```bash
+make up
+# 或者
+docker-compose up -d
+```
+
+## 目录结构 (Project Structure)
+
+- `backend/`: FastAPI 后端代码
+  - `app/api/`: API 路由定义
+  - `app/core/`: 核心配置、安全、中间件
+  - `app/model/`: 数据库模型 (SQLModel)
+  - `app/worker/`: Celery 任务与调度
+- `frontend/`: Vue 3 前端代码
+  - `src/views/`: 页面视图
+  - `src/store/`: Pinia 状态管理
+  - `src/layout/`: 页面布局

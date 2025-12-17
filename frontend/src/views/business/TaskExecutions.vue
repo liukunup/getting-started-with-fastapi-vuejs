@@ -205,7 +205,7 @@ const deleteExecutionConfirmed = async () => {
                 </template>
             </Column>
 
-            <Column field="completed_at" header="Completed At" sortable filterField="completed_at" dataType="date" style="min-width: 12rem">
+            <Column field="completed_at" header="Completed At" sortable filterField="completed_at" dataType="date" style="min-width: 15rem">
                 <template #body="{ data }">
                     <span class="text-sm">{{ data.completed_at ? formatDate(data.completed_at) : '-' }}</span>
                 </template>

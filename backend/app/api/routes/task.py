@@ -29,7 +29,7 @@ from app.model.task_execution import (
 router = APIRouter(tags=["Task"], prefix="/tasks")
 
 
-@router.get("/", response_model=TasksPublic)
+@router.get("/", response_model=TasksPublic, summary="Retrieve tasks")
 def read_tasks(
     session: SessionDep, current_user: CurrentUser, skip: int = 0, limit: int = 100
 ) -> TasksPublic:
@@ -54,7 +54,7 @@ def read_tasks(
     return TasksPublic(tasks=tasks, total=total)
 
 
-@router.get("/registered", response_model=list[str])
+@router.get("/registered", response_model=list[str], summary="Get all registered Celery tasks")
 def get_registered_tasks(
     celery_app: CeleryDep,
     current_user: CurrentUser,
@@ -71,7 +71,7 @@ def get_registered_tasks(
     return filtered_tasks
 
 
-@router.get("/{task_id}", response_model=TaskPublic)
+@router.get("/{task_id}", response_model=TaskPublic, summary="Get task by ID")
 def read_task(
     session: SessionDep, current_user: CurrentUser, task_id: uuid.UUID
 ) -> TaskPublic:
@@ -88,7 +88,7 @@ def read_task(
     return task
 
 
-@router.post("/", response_model=TaskPublic)
+@router.post("/", response_model=TaskPublic, summary="Create new task")
 def create_task(
     *,
     session: SessionDep,
@@ -196,7 +196,7 @@ def create_task(
     return task
 
 
-@router.put("/{task_id}", response_model=TaskPublic)
+@router.put("/{task_id}", response_model=TaskPublic, summary="Update a task")
 def update_task(
     *,
     session: SessionDep,
@@ -312,7 +312,7 @@ def update_task(
     return task
 
 
-@router.delete("/{task_id}", response_model=Message)
+@router.delete("/{task_id}", response_model=Message, summary="Delete a task")
 def delete_task(
     session: SessionDep,
     current_user: CurrentUser,
@@ -347,7 +347,7 @@ def delete_task(
     return Message(message="Task deleted successfully")
 
 
-@router.post("/{task_id}/execute", response_model=TaskPublic)
+@router.post("/{task_id}/execute", response_model=TaskPublic, summary="Manually trigger task execution")
 def trigger_task(
     session: SessionDep,
     current_user: CurrentUser,
@@ -391,7 +391,7 @@ def trigger_task(
     return task
 
 
-@router.post("/{task_id}/enable", response_model=TaskPublic)
+@router.post("/{task_id}/enable", response_model=TaskPublic, summary="Enable a task")
 def enable_task(
     session: SessionDep,
     current_user: CurrentUser,
@@ -415,7 +415,7 @@ def enable_task(
     return task
 
 
-@router.post("/{task_id}/disable", response_model=TaskPublic)
+@router.post("/{task_id}/disable", response_model=TaskPublic, summary="Disable a task")
 def disable_task(
     session: SessionDep,
     current_user: CurrentUser,
@@ -443,7 +443,7 @@ def disable_task(
     return task
 
 
-@router.get("/executions/all", response_model=TaskExecutionsPublic)
+@router.get("/executions/all", response_model=TaskExecutionsPublic, summary="Get all task executions")
 def get_all_task_executions(
     session: SessionDep,
     current_user: CurrentUser,
@@ -484,7 +484,7 @@ def get_all_task_executions(
     return TaskExecutionsPublic(executions=execution_public_list, total=total)
 
 
-@router.get("/executions/{execution_id}", response_model=TaskExecutionPublic)
+@router.get("/executions/{execution_id}", response_model=TaskExecutionPublic, summary="Get task execution by ID")
 def get_execution(
     session: SessionDep,
     current_user: CurrentUser,
@@ -510,7 +510,7 @@ def get_execution(
     return execution_public
 
 
-@router.delete("/executions/{execution_id}", response_model=Message)
+@router.delete("/executions/{execution_id}", response_model=Message, summary="Delete task execution by ID")
 def delete_execution(
     session: SessionDep,
     current_user: CurrentUser,
@@ -535,7 +535,7 @@ def delete_execution(
     return Message(message="Execution deleted successfully")
 
 
-@router.get("/{task_id}/status")
+@router.get("/{task_id}/status", response_model=Any, summary="Get task execution status")
 def get_task_execution_status(
     session: SessionDep,
     current_user: CurrentUser,
@@ -575,7 +575,7 @@ def get_task_execution_status(
         )
 
 
-@router.get("/{task_id}/executions", response_model=TaskExecutionsPublic)
+@router.get("/{task_id}/executions", response_model=TaskExecutionsPublic, summary="Get task executions")
 def get_task_executions(
     session: SessionDep,
     current_user: CurrentUser,

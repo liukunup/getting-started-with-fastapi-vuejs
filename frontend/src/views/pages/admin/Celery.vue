@@ -1,4 +1,5 @@
 <script setup>
+import { formatDateTime } from '@/utils';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import Button from 'primevue/button';
@@ -180,11 +181,6 @@ const getWorkerShortName = (workerName) => {
 const formatTimestamp = (timestamp) => {
     if (!timestamp) return '';
     return new Date(timestamp * 1000).toLocaleString('zh-CN');
-};
-
-const formatDateTime = (dateStr) => {
-    if (!dateStr) return '';
-    return new Date(dateStr).toLocaleString('zh-CN');
 };
 
 // 生命周期

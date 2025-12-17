@@ -67,7 +67,7 @@ def _update_setting(
             session.add(setting)
 
 
-@router.get("/", dependencies=[Depends(get_current_active_superuser)])
+@router.get("/", dependencies=[Depends(get_current_active_superuser)], summary="Retrieve system settings")
 def get_settings(session: SessionDep):
     # Try to load from DB first to ensure we have the latest
     # Note: In a real production app with high traffic, you might want to cache this
@@ -142,7 +142,7 @@ def get_settings(session: SessionDep):
     }
 
 
-@router.post("/", dependencies=[Depends(get_current_active_superuser)])
+@router.post("/", dependencies=[Depends(get_current_active_superuser)], summary="Update system settings")
 def update_settings(session: SessionDep, new_settings: SettingsUpdate):
     # General
     _update_setting(
