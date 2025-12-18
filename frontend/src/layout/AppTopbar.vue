@@ -33,10 +33,8 @@ const items = ref([
                 return;
             }
 
-            // 跳转到登录页
-            await router.push('/auth/login');
-            // 强制刷新页面以清除所有状态
-            window.location.reload();
+            // 跳转到登录页并刷新以清除所有状态
+            window.location.href = '/auth/login';
         }
     }
 ]);
