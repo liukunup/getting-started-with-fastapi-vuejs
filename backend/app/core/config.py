@@ -37,8 +37,10 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
 
-    # 60 minutes * 24 hours * 30 days = 30 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 30
+    # 30 minutes
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # 7 days
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     FRONTEND_HOST: str = "http://localhost:5173"
 

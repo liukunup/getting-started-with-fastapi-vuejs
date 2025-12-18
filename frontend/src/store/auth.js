@@ -4,12 +4,13 @@ import { staticMenu } from '@/layout/staticMenu';
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
-        token: localStorage.getItem('token') || '',
+        accessToken: localStorage.getItem('accessToken') || '',
+        refreshToken: localStorage.getItem('refreshToken') || '',
         user: null,
         menus: []
     }),
     getters: {
-        isAuthenticated: (state) => !!state.token
+        isAuthenticated: (state) => !!state.accessToken
     },
     actions: {
         async login(username, password) {
@@ -20,13 +21,23 @@ export const useAuthStore = defineStore('auth', {
                         password: password
                     }
                 });
-                this.token = response.access_token;
-                localStorage.setItem('token', this.token);
+                this.accessToken = response.access_token;
+                this.refreshToken = response.refresh_token;
+                localStorage.setItem('accessToken', this.accessToken);
+                localStorage.setItem('refreshToken', this.refreshToken);
                 return true;
             } catch (error) {
                 console.error('Login failed:', error);
                 throw error;
             }
+        },
+        logout() {
+            this.accessToken = '';
+            this.refreshToken = '';
+            this.user = null;
+            this.menus = [];
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
         },
         async fetchUserInfo() {
             try {
@@ -51,12 +62,6 @@ export const useAuthStore = defineStore('auth', {
                 this.menus = [...staticMenu];
                 throw error;
             }
-        },
-        logout() {
-            this.token = '';
-            this.user = null;
-            this.menus = [];
-            localStorage.removeItem('token');
         }
     }
 });

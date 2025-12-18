@@ -51,7 +51,10 @@ def read_role(session: SessionDep, role_id: uuid.UUID) -> RolePublic:
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=RolePublic, summary="Create new role"
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=RolePublic,
+    summary="Create new role",
 )
 def create_role(session: SessionDep, role_in: RoleCreate) -> Any:
     """

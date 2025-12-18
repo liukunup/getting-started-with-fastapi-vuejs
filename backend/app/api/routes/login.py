@@ -7,16 +7,19 @@ import jwt
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
+from pydantic import ValidationError
 
 from app import crud
 from app.api.deps import CacheDep, CurrentUser, SessionDep, get_current_active_superuser
+from app.core import security
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
+    create_refresh_token,
     get_password_hash,
 )
-from app.model.base import Message, NewPassword, Token
-from app.model.user import UserCreate, UserPublic, UserRegister
+from app.model.base import Message, NewPassword, Token, TokenPayload
+from app.model.user import User, UserCreate, UserPublic, UserRegister
 from app.utils import (
     generate_reset_password_email,
     generate_reset_password_token,
@@ -39,7 +42,9 @@ def get_login_config():
     }
 
 
-@router.post("/login/access-token", response_model=Token, summary="OAuth2 access token login")
+@router.post(
+    "/login/access-token", response_model=Token, summary="OAuth2 access token login"
+)
 def login_access_token(
     session: SessionDep,
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
@@ -55,12 +60,58 @@ def login_access_token(
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     return Token(
-        access_token=create_access_token(user.id, expires_delta=access_token_expires)
+        access_token=create_access_token(user.id, expires_delta=access_token_expires),
+        refresh_token=create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
     )
 
 
-@router.post("/login/test-token", response_model=UserPublic, summary="Test access token")
+@router.post(
+    "/login/refresh-token", response_model=Token, summary="Refresh access token"
+)
+def refresh_token(session: SessionDep, refresh_token: str) -> Token:
+    """
+    Refresh access token
+    """
+    try:
+        payload = jwt.decode(
+            refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
+        )
+        token_data = TokenPayload(**payload)
+    except (jwt.InvalidTokenError, ValidationError):
+        raise HTTPException(
+            status_code=403,
+            detail="Could not validate credentials",
+        )
+
+    if token_data.type != "refresh":
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid token type",
+        )
+
+    user = session.get(User, token_data.sub)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+    return Token(
+        access_token=create_access_token(user.id, expires_delta=access_token_expires),
+        refresh_token=create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        ),
+    )
+
+
+@router.post(
+    "/login/test-token", response_model=UserPublic, summary="Test access token"
+)
 def test_token(current_user: CurrentUser) -> UserPublic:
     """
     Test access token
@@ -260,11 +311,15 @@ async def login_oidc_callback(session: SessionDep, request: Request, code: str):
             raise HTTPException(status_code=400, detail="Inactive user")
 
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        refresh_token_expires = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
         access_token = create_access_token(user.id, expires_delta=access_token_expires)
+        refresh_token = create_refresh_token(
+            user.id, expires_delta=refresh_token_expires
+        )
 
         # Redirect to frontend with token
         return RedirectResponse(
-            f"{settings.FRONTEND_HOST}/auth/login?token={access_token}"
+            f"{settings.FRONTEND_HOST}/auth/login?access_token={access_token}&refresh_token={refresh_token}"
         )
 
 

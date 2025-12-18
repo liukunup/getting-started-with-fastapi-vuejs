@@ -31,7 +31,10 @@ def read_policies() -> Any:
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool, summary="Add a policy"
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=bool,
+    summary="Add a policy",
 )
 def add_policy(policy: Policy) -> Any:
     """
@@ -42,7 +45,10 @@ def add_policy(policy: Policy) -> Any:
 
 
 @router.delete(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=bool, summary="Remove a policy"
+    "/",
+    dependencies=[Depends(get_current_active_superuser)],
+    response_model=bool,
+    summary="Remove a policy",
 )
 def remove_policy(policy: Policy) -> Any:
     """

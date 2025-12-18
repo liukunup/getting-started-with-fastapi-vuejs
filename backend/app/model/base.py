@@ -27,11 +27,14 @@ class Message(SQLModel):
 
 class Token(SQLModel):
     access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
 
 
 class TokenPayload(SQLModel):
     # Save user id in "sub" field
     sub: str | None = None
+    type: str = "access"
 
 
 class NewPassword(SQLModel):

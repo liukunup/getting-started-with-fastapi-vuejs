@@ -54,6 +54,11 @@ def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> U
             token, settings.SECRET_KEY, algorithms=[security.ALGORITHM]
         )
         token_data = TokenPayload(**payload)
+        if token_data.type != "access":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Could not validate credentials",
+            )
         user_id = uuid.UUID(token_data.sub)
 
         if cache.redis.get(f"blacklist:user:{user_id}"):

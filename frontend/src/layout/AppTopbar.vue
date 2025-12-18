@@ -4,9 +4,11 @@ import AppConfigurator from './AppConfigurator.vue';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { OpenAPI } from '@/client';
+import { useAuthStore } from '@/store/auth';
 
 const { toggleMenu, toggleDarkMode, isDarkTheme } = useLayout();
 const router = useRouter();
+const authStore = useAuthStore();
 const menu = ref(null);
 const items = ref([
     {
@@ -23,7 +25,7 @@ const items = ref([
             const loginType = localStorage.getItem('loginType');
 
             // 清除本地存储的token
-            localStorage.removeItem('token');
+            authStore.logout();
             localStorage.removeItem('loginType');
 
             if (loginType === 'oidc') {

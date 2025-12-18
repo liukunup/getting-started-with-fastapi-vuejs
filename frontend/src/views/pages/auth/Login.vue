@@ -22,11 +22,20 @@ const loginConfig = ref({
 });
 
 onMounted(async () => {
-    const token = route.query.token;
-    if (token) {
-        localStorage.setItem('token', token);
+    const savedUsername = localStorage.getItem('savedUsername');
+    if (savedUsername) {
+        email.value = savedUsername;
+        checked.value = true;
+    }
+
+    const accessToken = route.query.access_token;
+    const refreshToken = route.query.refresh_token;
+    if (accessToken && refreshToken) {
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
         localStorage.setItem('loginType', 'oidc');
-        authStore.token = token;
+        authStore.accessToken = accessToken;
+        authStore.refreshToken = refreshToken;
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
         router.push('/');
         return;
@@ -53,6 +62,13 @@ const onLogin = async () => {
     try {
         await authStore.login(email.value, password.value);
         localStorage.removeItem('loginType');
+
+        if (checked.value) {
+            localStorage.setItem('savedEmail', email.value);
+        } else {
+            localStorage.removeItem('savedEmail');
+        }
+
         toast.add({ severity: 'success', summary: 'Success', detail: 'Login successful', life: 3000 });
         // 跳转到首页
         router.push('/');

@@ -54,7 +54,9 @@ def read_tasks(
     return TasksPublic(tasks=tasks, total=total)
 
 
-@router.get("/registered", response_model=list[str], summary="Get all registered Celery tasks")
+@router.get(
+    "/registered", response_model=list[str], summary="Get all registered Celery tasks"
+)
 def get_registered_tasks(
     celery_app: CeleryDep,
     current_user: CurrentUser,
@@ -347,7 +349,11 @@ def delete_task(
     return Message(message="Task deleted successfully")
 
 
-@router.post("/{task_id}/execute", response_model=TaskPublic, summary="Manually trigger task execution")
+@router.post(
+    "/{task_id}/execute",
+    response_model=TaskPublic,
+    summary="Manually trigger task execution",
+)
 def trigger_task(
     session: SessionDep,
     current_user: CurrentUser,
@@ -443,7 +449,11 @@ def disable_task(
     return task
 
 
-@router.get("/executions/all", response_model=TaskExecutionsPublic, summary="Get all task executions")
+@router.get(
+    "/executions/all",
+    response_model=TaskExecutionsPublic,
+    summary="Get all task executions",
+)
 def get_all_task_executions(
     session: SessionDep,
     current_user: CurrentUser,
@@ -484,7 +494,11 @@ def get_all_task_executions(
     return TaskExecutionsPublic(executions=execution_public_list, total=total)
 
 
-@router.get("/executions/{execution_id}", response_model=TaskExecutionPublic, summary="Get task execution by ID")
+@router.get(
+    "/executions/{execution_id}",
+    response_model=TaskExecutionPublic,
+    summary="Get task execution by ID",
+)
 def get_execution(
     session: SessionDep,
     current_user: CurrentUser,
@@ -510,7 +524,11 @@ def get_execution(
     return execution_public
 
 
-@router.delete("/executions/{execution_id}", response_model=Message, summary="Delete task execution by ID")
+@router.delete(
+    "/executions/{execution_id}",
+    response_model=Message,
+    summary="Delete task execution by ID",
+)
 def delete_execution(
     session: SessionDep,
     current_user: CurrentUser,
@@ -535,7 +553,9 @@ def delete_execution(
     return Message(message="Execution deleted successfully")
 
 
-@router.get("/{task_id}/status", response_model=Any, summary="Get task execution status")
+@router.get(
+    "/{task_id}/status", response_model=Any, summary="Get task execution status"
+)
 def get_task_execution_status(
     session: SessionDep,
     current_user: CurrentUser,
@@ -575,7 +595,11 @@ def get_task_execution_status(
         )
 
 
-@router.get("/{task_id}/executions", response_model=TaskExecutionsPublic, summary="Get task executions")
+@router.get(
+    "/{task_id}/executions",
+    response_model=TaskExecutionsPublic,
+    summary="Get task executions",
+)
 def get_task_executions(
     session: SessionDep,
     current_user: CurrentUser,

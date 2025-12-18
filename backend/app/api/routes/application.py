@@ -46,7 +46,9 @@ def read_applications(
     return ApplicationsPublic(applications=apps, total=total)
 
 
-@router.get("/{app_id}", response_model=ApplicationPublic, summary="Get application by ID")
+@router.get(
+    "/{app_id}", response_model=ApplicationPublic, summary="Get application by ID"
+)
 def read_application(
     session: SessionDep, current_user: CurrentUser, app_id: uuid.UUID
 ) -> ApplicationPublic:
@@ -86,7 +88,9 @@ def create_application(
     return app
 
 
-@router.put("/{app_id}", response_model=ApplicationPublic, summary="Update an application")
+@router.put(
+    "/{app_id}", response_model=ApplicationPublic, summary="Update an application"
+)
 def update_application(
     *,
     session: SessionDep,

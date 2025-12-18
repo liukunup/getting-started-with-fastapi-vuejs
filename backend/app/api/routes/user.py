@@ -209,7 +209,9 @@ def register_user(session: SessionDep, user_in: UserRegister) -> UserPublic:
     return user
 
 
-@router.get("/{user_id}", response_model=UserPublic, summary="Get a specific user by id")
+@router.get(
+    "/{user_id}", response_model=UserPublic, summary="Get a specific user by id"
+)
 def read_user_by_id(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> UserPublic:
@@ -271,7 +273,11 @@ def update_user(
     return db_user
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)], summary="Delete a user")
+@router.delete(
+    "/{user_id}",
+    dependencies=[Depends(get_current_active_superuser)],
+    summary="Delete a user",
+)
 def delete_user(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
 ) -> Message:
@@ -318,7 +324,10 @@ def force_logout(session: SessionDep, cache: CacheDep, user_id: uuid.UUID) -> Me
 
 
 @router.get(
-    "/me/menu", response_model=list[MenuTreeNode], response_model_exclude_none=True, summary="Get current user menu"
+    "/me/menu",
+    response_model=list[MenuTreeNode],
+    response_model_exclude_none=True,
+    summary="Get current user menu",
 )
 def read_user_menu(
     session: SessionDep, current_user: CurrentUser
