@@ -577,7 +577,7 @@ def init_db(session: Session) -> None:
         if parent_id:
             statement = statement.where(Menu.parent_id == parent_id)
         else:
-            statement = statement.where(Menu.parent_id is None)
+            statement = statement.where(Menu.parent_id == None)  # noqa: E711
         # Check if menu already exists
         existing_menu = session.exec(statement).first()
         if not existing_menu:
