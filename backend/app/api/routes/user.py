@@ -336,7 +336,7 @@ def read_user_menu(
     Get current user menu.
     """
     # 1. Fetch all menus
-    menus = session.exec(select(Menu)).all()
+    menus = session.exec(select(Menu).order_by(Menu.sort)).all()
 
     # 2. Build map
     menu_map = {}

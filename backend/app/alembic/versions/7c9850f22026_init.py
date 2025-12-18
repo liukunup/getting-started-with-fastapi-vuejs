@@ -100,6 +100,7 @@ def upgrade() -> None:
     sa.Column('target', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('clazz', sqlmodel.sql.sqltypes.AutoString(length=255), nullable=True),
     sa.Column('is_hidden', sa.Boolean(), nullable=False),
+    sa.Column('sort', sa.Integer(), nullable=False),
     sa.Column('parent_id', sa.Uuid(), nullable=True),
     sa.Column('owner_id', sa.Uuid(), nullable=True),
     sa.Column('id', sa.Uuid(), nullable=False),

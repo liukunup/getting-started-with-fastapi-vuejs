@@ -570,7 +570,7 @@ def init_db(session: Session) -> None:
         },
     ]
 
-    def create_menu_recursive(menu_data, parent_id=None):
+    def create_menu_recursive(menu_data, parent_id=None, sort=0):
         """Recursively create menu items."""
         name = menu_data.get("name")
         statement = select(Menu).where(Menu.name == name)
@@ -592,6 +592,7 @@ def init_db(session: Session) -> None:
                 target=menu_data.get("target"),
                 clazz=menu_data.get("class"),
                 parent_id=parent_id,
+                sort=sort,
             )
             # Create menu
             existing_menu = Menu.model_validate(menu_in, update={"owner_id": user.id})
@@ -601,21 +602,21 @@ def init_db(session: Session) -> None:
 
         # Recursively create child items
         if "items" in menu_data:
-            for item in menu_data["items"]:
-                create_menu_recursive(item, parent_id=existing_menu.id)
+            for i, item in enumerate(menu_data["items"]):
+                create_menu_recursive(item, parent_id=existing_menu.id, sort=i)
 
     # Create main menus
-    for menu in initial_main_menu_structure:
-        create_menu_recursive(menu)
+    for i, menu in enumerate(initial_main_menu_structure):
+        create_menu_recursive(menu, sort=i)
 
     # Create admin menus
-    for admin_menu in initial_admin_menu_structure:
-        create_menu_recursive(admin_menu)
+    for i, admin_menu in enumerate(initial_admin_menu_structure):
+        create_menu_recursive(admin_menu, sort=i)
 
     # Add dev menus only in local environment
     if settings.ENVIRONMENT == "local":
-        for dev_menu in initial_dev_menu_structure:
-            create_menu_recursive(dev_menu)
+        for i, dev_menu in enumerate(initial_dev_menu_structure):
+            create_menu_recursive(dev_menu, sort=i)
 
     # 6. Create initial casbin policies for menu access control
     logger.info("6/7 Creating initial casbin policies for menu access control...")

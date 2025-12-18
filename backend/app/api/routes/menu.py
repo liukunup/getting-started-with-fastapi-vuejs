@@ -24,7 +24,7 @@ def read_menus(
     Retrieve menus.
     """
     # Fetch all menus
-    menus = session.exec(select(Menu)).all()
+    menus = session.exec(select(Menu).order_by(Menu.sort)).all()
 
     # Convert to MenuTreeNode first to avoid modifying DB objects
     menu_map = {}

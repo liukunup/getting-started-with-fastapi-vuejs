@@ -20,6 +20,7 @@ class MenuBase(SQLModel):
     target: str | None = Field(default=None, max_length=255)
     clazz: str | None = Field(default=None, max_length=255)
     is_hidden: bool = Field(default=False)
+    sort: int = Field(default=0)
     parent_id: uuid.UUID | None = Field(default=None)
 
 
@@ -29,6 +30,7 @@ class MenuCreate(MenuBase):
 
 class MenuUpdate(MenuBase):
     is_hidden: bool | None = Field(default=None)
+    sort: int | None = Field(default=None)
 
 
 class Menu(MenuBase, BaseDataModel, table=True):
@@ -56,6 +58,7 @@ class MenuTreeNode(SQLModel):
     target: str | None = None
     clazz: str | None = None
     is_hidden: bool
+    sort: int
     parent_id: uuid.UUID | None = None
     items: list["MenuTreeNode"] | None = None
     children: list["MenuTreeNode"] | None = None
