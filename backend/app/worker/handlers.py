@@ -14,8 +14,7 @@ from celery.signals import (
 from sqlmodel import Session, select
 
 from app.core.database import engine
-from app.model.task import Task, TaskStatus
-from app.model.task_execution import TaskExecution, TaskExecutionStatus
+from app.model import Task, TaskExecution, TaskStatus
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +71,7 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG0
                         celery_task_id=task_id,
                         celery_task_args=db_task.celery_task_args,
                         celery_task_kwargs=db_task.celery_task_kwargs,
-                        status=TaskExecutionStatus.DISABLED,
+                        status=TaskStatus.DISABLED,
                         started_at=datetime.now(timezone.utc),
                         completed_at=datetime.now(timezone.utc),
                         result="Task is disabled",
@@ -92,14 +91,14 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG0
                         celery_task_id=task_id,
                         celery_task_args=db_task.celery_task_args,
                         celery_task_kwargs=db_task.celery_task_kwargs,
-                        status=TaskExecutionStatus.STARTED,
+                        status=TaskStatus.RUNNING,
                         started_at=datetime.now(timezone.utc),
                         worker=task.request.hostname if task and task.request else None,
                     )
                     session.add(execution)
 
                     # Update Task status
-                    db_task.status = TaskStatus.STARTED
+                    db_task.status = TaskStatus.RUNNING
                     db_task.last_run_time = datetime.now(timezone.utc)
                     db_task.celery_task_id = task_id
                     session.add(db_task)
@@ -134,7 +133,7 @@ def task_success_handler(sender=None, result=None, **kwargs):  # noqa: ARG001
                 logger.info(
                     f"Updating execution status to SUCCESS for task_id: {task_id}"
                 )
-                execution.status = TaskExecutionStatus.SUCCESS
+                execution.status = TaskStatus.SUCCESS
                 execution.completed_at = datetime.now(timezone.utc)
                 if execution.started_at:
                     started_at = execution.started_at
@@ -196,7 +195,7 @@ def task_failure_handler(
                 logger.info(
                     f"Updating execution status to FAILED for task_id: {task_id}"
                 )
-                execution.status = TaskExecutionStatus.FAILED
+                execution.status = TaskStatus.FAILED
                 execution.completed_at = datetime.now(timezone.utc)
                 if execution.started_at:
                     started_at = execution.started_at
@@ -247,7 +246,7 @@ def task_retry_handler(request=None, reason=None, einfo=None, **kwargs):  # noqa
                 logger.info(
                     f"Updating execution status to RETRYING for task_id: {task_id}"
                 )
-                execution.status = TaskExecutionStatus.RETRYING
+                execution.status = TaskStatus.RETRYING
                 execution.result = str(reason)
                 session.add(execution)
                 session.commit()
@@ -293,7 +292,7 @@ def task_revoked_handler(
                 logger.info(
                     f"Updating execution status to REVOKED for task_id: {task_id}"
                 )
-                execution.status = TaskExecutionStatus.REVOKED
+                execution.status = TaskStatus.REVOKED
                 execution.completed_at = datetime.now(timezone.utc)
                 execution.result = "Task was revoked"
                 if terminated:

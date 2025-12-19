@@ -1,0 +1,117 @@
+networks:
+  traefik-public:
+    # For local dev, don't expect an external Traefik network
+    external: false
+
+services:
+  worker:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    networks:
+      - traefik-public
+      - default
+    build:
+      context: ./backend
+    command: celery -A app.worker.celery worker -l info
+    env_file:
+      - .env
+    environment:
+      # Project
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      # Database
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER?Variable not set}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      # Redis
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      # Simple Storage Service
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      # Email
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      # OIDC
+      OIDC_ENABLED: ${OIDC_ENABLED?Variable not set}
+      # LDAP
+      LDAP_ENABLED: ${LDAP_ENABLED?Variable not set}
+    healthcheck:
+      test: |
+        CMD
+        celery inspect ping -d worker@%h || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+
+  beat:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: unless-stopped
+    networks:
+      - traefik-public
+      - default
+    build:
+      context: ./backend
+    command: celery -A app.worker.celery beat -l info
+    env_file:
+      - .env
+    environment:
+      # Project
+      DOMAIN: ${DOMAIN}
+      FRONTEND_HOST: ${FRONTEND_HOST?Variable not set}
+      ENVIRONMENT: ${ENVIRONMENT}
+      BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
+      SECRET_KEY: ${SECRET_KEY?Variable not set}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER?Variable not set}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      # Database
+      DATABASE_TYPE: ${DATABASE_TYPE}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_USER: ${DATABASE_USER?Variable not set}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      DATABASE_NAME: ${DATABASE_NAME}
+      # Redis
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_DB: ${REDIS_DB}
+      REDIS_PASSWORD: ${REDIS_PASSWORD?Variable not set}
+      # Simple Storage Service
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
+      STORAGE_BUCKET_NAME: ${STORAGE_BUCKET_NAME}
+      STORAGE_SECURE: ${STORAGE_SECURE}
+      # Email
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      # OIDC
+      OIDC_ENABLED: ${OIDC_ENABLED?Variable not set}
+      # LDAP
+      LDAP_ENABLED: ${LDAP_ENABLED?Variable not set}
+    healthcheck:
+      test: |
+        CMD
+        ps aux | grep 'celery beat' | grep -v grep || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s

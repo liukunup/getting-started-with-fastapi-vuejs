@@ -7,16 +7,17 @@ volumes:
   postgres_data:
   redis_data:
   rustfs_data:
+  rustfs_logs:
 
 services:
 
   postgres:
-    image: postgres:latest
+    image: postgres
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=${DATABASE_USER:-myapp}
-      - POSTGRES_PASSWORD=${DATABASE_PASSWORD:-changethis}
-      - POSTGRES_DB=${DATABASE_NAME:-myapp}
+      POSTGRES_USER: ${DATABASE_USER?Variable not set}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
+      POSTGRES_DB: ${DATABASE_NAME?Variable not set}
     volumes:
       - postgres_data:/var/lib/postgresql
     networks:
@@ -25,16 +26,16 @@ services:
     healthcheck:
       test: |
         CMD-SHELL
-        pg_isready -U ${DATABASE_USER:-myapp} -d ${DATABASE_NAME:-myapp}
+        pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 30s
 
   redis:
-    image: redis:latest
+    image: redis
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD:-changethis}
+    command: redis-server --requirepass ${REDIS_PASSWORD?Variable not set}
     volumes:
       - redis_data:/data
     networks:
@@ -43,21 +44,22 @@ services:
     healthcheck:
       test: |
         CMD
-        redis-cli -a ${REDIS_PASSWORD:-changethis} ping
+        redis-cli -a ${REDIS_PASSWORD} ping
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
 
   rustfs:
-    image: rustfs/rustfs:latest
+    image: rustfs/rustfs
     restart: unless-stopped
     environment:
-      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY:-admin}
-      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY:-changethis}
+      RUSTFS_ACCESS_KEY: ${STORAGE_ACCESS_KEY?Variable not set}
+      RUSTFS_SECRET_KEY: ${STORAGE_SECRET_KEY?Variable not set}
       RUSTFS_CONSOLE_ENABLE: true
     volumes:
       - rustfs_data:/data
+      - rustfs_logs:/logs
     networks:
       - traefik-public
       - default
@@ -71,7 +73,7 @@ services:
       start_period: 40s
 
   rustfs-init:
-    image: minio/mc:latest
+    image: minio/mc
     depends_on:
       rustfs:
         condition: service_healthy
@@ -79,14 +81,14 @@ services:
       - /bin/sh
       - -c
       - |
-        until mc alias set myrustfs http://rustfs:9000 ${STORAGE_ACCESS_KEY:-admin} ${STORAGE_SECRET_KEY:-changethis}; do
+        until mc alias set myrustfs http://rustfs:9000 ${STORAGE_ACCESS_KEY} ${STORAGE_SECRET_KEY}; do
           echo 'Waiting for RustFS...'
           sleep 1
         done
-        if mc ls myrustfs/${STORAGE_BUCKET_NAME:-myapp} > /dev/null 2>&1; then
+        if mc ls myrustfs/${STORAGE_BUCKET_NAME?Variable not set} > /dev/null 2>&1; then
           echo 'Bucket already exists'
         else
-          mc mb myrustfs/${STORAGE_BUCKET_NAME:-myapp}
+          mc mb myrustfs/${STORAGE_BUCKET_NAME}
         fi
         exit 0
     networks:
@@ -110,7 +112,7 @@ services:
     environment:
       # Project
       DOMAIN: ${DOMAIN}
-      FRONTEND_HOST: ${FRONTEND_HOST}
+      FRONTEND_HOST: ${FRONTEND_HOST?Variable not set}
       ENVIRONMENT: ${ENVIRONMENT}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       SECRET_KEY: ${SECRET_KEY?Variable not set}
@@ -120,7 +122,7 @@ services:
       DATABASE_TYPE: ${DATABASE_TYPE}
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_USER: ${DATABASE_USER?Variable not set}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
       DATABASE_NAME: ${DATABASE_NAME}
       # Redis
@@ -136,36 +138,13 @@ services:
       STORAGE_SECURE: ${STORAGE_SECURE}
       # Email
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
-      SMTP_TLS: ${SMTP_TLS}
-      SMTP_SSL: ${SMTP_SSL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
-      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
-      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
       # OIDC
-      OIDC_ENABLED: ${OIDC_ENABLED}
-      OIDC_NAME: ${OIDC_NAME}
-      OIDC_AUTH_URL: ${OIDC_AUTH_URL}
-      OIDC_TOKEN_URL: ${OIDC_TOKEN_URL}
-      OIDC_USERINFO_URL: ${OIDC_USERINFO_URL}
-      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-      OIDC_SCOPES: ${OIDC_SCOPES}
-      SIGNOUT_REDIRECT_URL: ${SIGNOUT_REDIRECT_URL}
-      AUTO_LOGIN: ${AUTO_LOGIN}
+      OIDC_ENABLED: ${OIDC_ENABLED?Variable not set}
       # LDAP
-      LDAP_ENABLED: ${LDAP_ENABLED}
-      LDAP_HOST: ${LDAP_HOST}
-      LDAP_PORT: ${LDAP_PORT}
-      LDAP_BIND_DN: ${LDAP_BIND_DN}
-      LDAP_BIND_PASSWORD: ${LDAP_BIND_PASSWORD}
-      LDAP_BASE_DN: ${LDAP_BASE_DN}
-      LDAP_USER_FILTER: ${LDAP_USER_FILTER}
-      LDAP_EMAIL_ATTRIBUTE: ${LDAP_EMAIL_ATTRIBUTE}
-      LDAP_USERNAME_ATTRIBUTE: ${LDAP_USERNAME_ATTRIBUTE}
-      LDAP_FULLNAME_ATTRIBUTE: ${LDAP_FULLNAME_ATTRIBUTE}
+      LDAP_ENABLED: ${LDAP_ENABLED?Variable not set}
 
   backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
@@ -189,7 +168,7 @@ services:
     environment:
       # Project
       DOMAIN: ${DOMAIN}
-      FRONTEND_HOST: ${FRONTEND_HOST}
+      FRONTEND_HOST: ${FRONTEND_HOST?Variable not set}
       ENVIRONMENT: ${ENVIRONMENT}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
       SECRET_KEY: ${SECRET_KEY?Variable not set}
@@ -199,7 +178,7 @@ services:
       DATABASE_TYPE: ${DATABASE_TYPE}
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT}
-      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_USER: ${DATABASE_USER?Variable not set}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD?Variable not set}
       DATABASE_NAME: ${DATABASE_NAME}
       # Redis
@@ -215,36 +194,13 @@ services:
       STORAGE_SECURE: ${STORAGE_SECURE}
       # Email
       SMTP_HOST: ${SMTP_HOST}
-      SMTP_PORT: ${SMTP_PORT}
       SMTP_USER: ${SMTP_USER}
-      SMTP_PASSWORD: ${SMTP_PASSWORD?Variable not set}
-      SMTP_TLS: ${SMTP_TLS}
-      SMTP_SSL: ${SMTP_SSL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
-      EMAILS_FROM_NAME: ${EMAILS_FROM_NAME}
-      EMAIL_TEST_USER: ${EMAIL_TEST_USER}
       # OIDC
-      OIDC_ENABLED: ${OIDC_ENABLED}
-      OIDC_NAME: ${OIDC_NAME}
-      OIDC_AUTH_URL: ${OIDC_AUTH_URL}
-      OIDC_TOKEN_URL: ${OIDC_TOKEN_URL}
-      OIDC_USERINFO_URL: ${OIDC_USERINFO_URL}
-      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
-      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-      OIDC_SCOPES: ${OIDC_SCOPES}
-      SIGNOUT_REDIRECT_URL: ${SIGNOUT_REDIRECT_URL}
-      AUTO_LOGIN: ${AUTO_LOGIN}
+      OIDC_ENABLED: ${OIDC_ENABLED?Variable not set}
       # LDAP
-      LDAP_ENABLED: ${LDAP_ENABLED}
-      LDAP_HOST: ${LDAP_HOST}
-      LDAP_PORT: ${LDAP_PORT}
-      LDAP_BIND_DN: ${LDAP_BIND_DN}
-      LDAP_BIND_PASSWORD: ${LDAP_BIND_PASSWORD}
-      LDAP_BASE_DN: ${LDAP_BASE_DN}
-      LDAP_USER_FILTER: ${LDAP_USER_FILTER}
-      LDAP_EMAIL_ATTRIBUTE: ${LDAP_EMAIL_ATTRIBUTE}
-      LDAP_USERNAME_ATTRIBUTE: ${LDAP_USERNAME_ATTRIBUTE}
-      LDAP_FULLNAME_ATTRIBUTE: ${LDAP_FULLNAME_ATTRIBUTE}
+      LDAP_ENABLED: ${LDAP_ENABLED?Variable not set}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/healthz/"]
       interval: 10s
@@ -296,3 +252,33 @@ services:
 
       # Enable redirection for HTTP and HTTPS
       - traefik.http.routers.${STACK_NAME?Variable not set}-frontend-http.middlewares=https-redirect
+
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - traefik-public
+      - default
+    depends_on:
+      postgres:
+        condition: service_healthy
+        restart: true
+    environment:
+      ADMINER_DESIGN: pepa-linha-dark
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-public
+      - traefik.constraint-label=traefik-public
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-http.rule=Host(`adminer.${DOMAIN?Variable not set}`)
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-http.entrypoints=http
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-http.middlewares=https-redirect
+
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-https.rule=Host(`adminer.${DOMAIN?Variable not set}`)
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-https.entrypoints=https
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-https.tls=true
+      - traefik.http.routers.${STACK_NAME?Variable not set}-adminer-https.tls.certresolver=le
+
+      # Enable redirection for HTTP and HTTPS
+      - traefik.http.services.${STACK_NAME?Variable not set}-adminer.loadbalancer.server.port=8080

@@ -36,6 +36,7 @@ class TaskStatus(str, Enum):
     RUNNING = "running"  # 运行中
     SUCCESS = "success"  # 成功
     FAILED = "failed"  # 失败
+    RETRYING = "retrying"  # 重试中
     REVOKED = "revoked"  # 已撤销
     DISABLED = "disabled"  # 已禁用
 

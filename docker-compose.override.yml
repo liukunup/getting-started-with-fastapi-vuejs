@@ -15,8 +15,8 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8888:80"
-      - "8889:8080"
+      - "80:80"
+      - "8090:8080"
     # Duplicate the command from docker-compose.yml to add --api.insecure=true
     command:
       # Enable Docker in Traefik, so that it reads labels from Docker services
@@ -66,6 +66,11 @@ services:
       - "9000:9000"
       - "9001:9001"
 
+  adminer:
+    restart: "no"
+    ports:
+      - "8080:8080"
+
   mailcatcher:
     image: schickling/mailcatcher
     ports:
@@ -79,7 +84,11 @@ services:
     build:
       context: ./backend
     # command: sleep infinity  # Infinite loop to keep container alive doing nothing
-    command: bash scripts/start-dev.sh
+    command:
+      - fastapi
+      - run
+      - --reload
+      - app/main.py
     develop:
       watch:
         - path: ./backend
@@ -90,6 +99,7 @@ services:
             - .venv
         - path: ./backend/pyproject.toml
           action: rebuild
+    # TODO: remove once coverage is done locally
     volumes:
       - ./backend/htmlcov:/app/htmlcov
     environment:
@@ -120,13 +130,13 @@ services:
       - backend
       - mailcatcher
     environment:
-      - VITE_API_URL=http://backend:8000
-      - MAILCATCHER_HOST=http://mailcatcher:1080
+      VITE_API_URL: http://backend:8000
+      MAILCATCHER_HOST: http://mailcatcher:1080
       # For the reports when run locally
-      - PLAYWRIGHT_HTML_HOST=0.0.0.0
-      - CI=${CI}
+      PLAYWRIGHT_HTML_HOST: 0.0.0.0
+      CI: ${CI}
     volumes:
       - ./frontend/blob-report:/app/blob-report
       - ./frontend/test-results:/app/test-results
     ports:
-      - 9323:9323
+      - "9323:9323"
