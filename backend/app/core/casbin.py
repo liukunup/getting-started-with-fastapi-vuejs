@@ -7,7 +7,7 @@ from app.core.database import engine
 from app.model.casbin_rule import CasbinRule
 
 # Get the absolute path to the model file
-model_path = os.path.join(os.path.dirname(__file__), "../../rbac_model.conf")
+model_path = os.path.join(os.path.dirname(__file__), "rbac_model.conf")
 
 # Initialize the Casbin adapter with SQLAlchemy
 adapter = casbin_sqlalchemy_adapter.Adapter(engine, CasbinRule)
