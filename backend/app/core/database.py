@@ -606,7 +606,7 @@ def init_db(session: Session) -> None:
 
         # Recursively create child items
         if "items" in menu_data:
-            for i, item in enumerate(menu_data["items"]):
+            for item in menu_data["items"]:
                 create_menu_recursive(item, parent_id=existing_menu.id)
 
     # Create main menus
