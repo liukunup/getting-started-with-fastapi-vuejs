@@ -412,12 +412,12 @@ const setNow = () => {
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
                 <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="celery_task_name" header="Celery Task" sortable style="min-width: 15rem">
+                <Column field="celery_task_name" header="Celery Task" sortable style="min-width: 16rem">
                     <template #body="{ data }">
                         <span>{{ data.celery_task_name }}</span>
                     </template>
                 </Column>
-                <Column header="Schedule" style="min-width: 15rem">
+                <Column header="Schedule" style="min-width: 10rem">
                     <template #body="{ data }">
                         <span v-if="data.task_type === 'scheduled'">
                             {{ formatDate(data.scheduled_time) }}

@@ -173,24 +173,19 @@ const deleteSelectedGroups = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="name" header="Name" sortable style="min-width: 8rem"></Column>
-                <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
-                <Column field="owner.full_name" header="Owner" sortable style="min-width: 8rem">
+                <Column field="name" header="Name" sortable style="min-width: 10rem"></Column>
+                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
+                <Column field="owner.full_name" header="Owner" sortable style="min-width: 12rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
-                <Column field="user_names" header="Users" sortable style="min-width: 8rem">
+                <Column field="user_names" header="Users" sortable style="min-width: 12rem">
                     <template #body="{ data }">
                         <AvatarGroup v-if="data.members && data.members.length > 0">
                             <Avatar v-for="member in data.members.slice(0, 4)" :key="member.id" :image="getAvatarUrl(member.avatar)" size="normal" shape="circle" />
                             <Avatar v-if="data.members.length > 4" :label="`+${data.members.length - 4}`" shape="circle" size="normal" :style="{ 'background-color': '#9c27b0', color: '#ffffff' }" />
                         </AvatarGroup>
-                    </template>
-                </Column>
-                <Column field="created_at" header="Created At" sortable style="min-width: 8rem">
-                    <template #body="{ data }">
-                        {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
                 <Column :exportable="false" style="min-width: 8rem">

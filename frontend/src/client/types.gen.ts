@@ -491,6 +491,12 @@ export type ApiDeleteApiData = {
 
 export type ApiDeleteApiResponse = (Message);
 
+export type ApiReadApiPoliciesData = {
+    apiId: string;
+};
+
+export type ApiReadApiPoliciesResponse = (Array<string>);
+
 export type ApplicationReadApplicationsData = {
     limit?: number;
     skip?: number;
@@ -681,6 +687,12 @@ export type MenuDeleteMenuData = {
 };
 
 export type MenuDeleteMenuResponse = (Message);
+
+export type MenuReadMenuPoliciesData = {
+    menuId: string;
+};
+
+export type MenuReadMenuPoliciesResponse = (Array<string>);
 
 export type OpenApiOpenapiDemoResponse = (Message);
 

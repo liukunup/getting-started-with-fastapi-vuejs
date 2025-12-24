@@ -45,10 +45,15 @@ def init_db(session: Session) -> None:
 
     # 1. Create initial roles
     logger.info("1/7 Creating initial roles...")
-    for role_name in ["admin", "user", "guest"]:
+    roles_info = {
+        "admin": "Administrator with full access to all features and settings.",
+        "user": "Regular user with access to standard features.",
+        "guest": "Guest user with limited access.",
+    }
+    for role_name, role_description in roles_info.items():
         role = session.exec(select(Role).where(Role.name == role_name)).first()
         if not role:
-            role = Role(name=role_name, description=role_name.capitalize())
+            role = Role(name=role_name, description=role_description)
             session.add(role)
             session.commit()
 
@@ -106,6 +111,9 @@ def init_db(session: Session) -> None:
     enforcer.add_policy("api:guest", f"{settings.API_V1_STR}/login/config", "GET")
     enforcer.add_policy(
         "api:guest", f"{settings.API_V1_STR}/login/access-token", "POST"
+    )
+    enforcer.add_policy(
+        "api:guest", f"{settings.API_V1_STR}/login/refresh-token", "POST"
     )
     enforcer.add_policy(
         "api:guest", f"{settings.API_V1_STR}/password-recovery/*", "POST"

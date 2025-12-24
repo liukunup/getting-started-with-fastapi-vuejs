@@ -26,22 +26,18 @@ const filters = ref({
 const submitted = ref(false);
 const loading = ref(true);
 const roles = ref([]);
-const policies = ref([]);
 const permissionsDialog = ref(false);
 const selectedApi = ref({});
 const rolePermissions = ref({});
 
 onMounted(() => {
     loadApis();
-    loadRolesAndPolicies();
+    loadRoles();
 });
 
-function loadRolesAndPolicies() {
+function loadRoles() {
     RoleService.readRoles().then((data) => {
         roles.value = data.roles || data;
-    });
-    PolicyService.readPolicies().then((data) => {
-        policies.value = data;
     });
 }
 
@@ -135,16 +131,31 @@ function openPermissions(item) {
         return;
     }
     selectedApi.value = item;
+    
+    // Initialize permissions
     const perms = {};
     const roleList = Array.isArray(roles.value) ? roles.value : [];
-
     roleList.forEach((role) => {
-        // Check if policy exists: sub=api:{role.name}, obj={item.path}, act={item.method}
-        const hasPerm = policies.value.some((p) => p.sub === `api:${role.name}` && p.obj === item.path && p.act === item.method);
-        perms[role.name] = hasPerm;
+        perms[role.name] = false;
     });
     rolePermissions.value = perms;
+    
     permissionsDialog.value = true;
+
+    ApiService.readApiPolicies({ apiId: item.id })
+        .then((allowedRoles) => {
+            const newPerms = { ...rolePermissions.value };
+            allowedRoles.forEach((roleName) => {
+                if (newPerms.hasOwnProperty(roleName)) {
+                    newPerms[roleName] = true;
+                }
+            });
+            rolePermissions.value = newPerms;
+        })
+        .catch((error) => {
+            console.error('Failed to load API policies:', error);
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load permissions', life: 3000 });
+        });
 }
 
 function togglePermission(role, checked) {
@@ -157,13 +168,11 @@ function togglePermission(role, checked) {
     if (checked) {
         PolicyService.addPolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = true;
-            policies.value.push(policy);
             toast.add({ severity: 'success', summary: 'Permission Added', detail: `Added access for ${role.name}`, life: 3000 });
         });
     } else {
         PolicyService.removePolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = false;
-            policies.value = policies.value.filter((p) => !(p.sub === policy.sub && p.obj === policy.obj && p.act === policy.act));
             toast.add({ severity: 'success', summary: 'Permission Removed', detail: `Removed access for ${role.name}`, life: 3000 });
         });
     }
@@ -191,9 +200,16 @@ function togglePermission(role, checked) {
                 </div>
             </template>
 
-            <Column field="name" header="Name" :expander="true" style="min-width: 15rem"></Column>
-            <Column field="path" header="Path" style="min-width: 15rem"></Column>
+            <Column field="name" header="Name" :expander="true" style="min-width: 8rem"></Column>
+            <Column field="path" header="Path" style="min-width: 12rem"></Column>
             <Column field="method" header="Method" style="min-width: 8rem"></Column>
+            <Column field="roles" header="Roles" style="min-width: 12rem">
+                <template #body="slotProps">
+                    <div class="flex flex-wrap gap-1" v-if="slotProps.node.data.roles">
+                        <span v-for="role in slotProps.node.data.roles" :key="role" class="bg-primary text-primary-contrast rounded px-2 py-1 text-xs capitalize">{{ role }}</span>
+                    </div>
+                </template>
+            </Column>
             <Column style="min-width: 12rem">
                 <template #body="slotProps">
                     <div v-if="slotProps.node.data.path">
@@ -208,7 +224,7 @@ function togglePermission(role, checked) {
         <Dialog v-model:visible="permissionsDialog" :style="{ width: '450px' }" header="Manage Permissions" :modal="true">
             <div class="flex flex-col gap-4">
                 <div v-for="role in roles" :key="role.id" class="flex items-center justify-between">
-                    <span>{{ role.name }}</span>
+                    <span class="capitalize">{{ role.name }}</span>
                     <Checkbox :modelValue="rolePermissions[role.name]" @update:modelValue="(val) => togglePermission(role, val)" :binary="true" />
                 </div>
             </div>

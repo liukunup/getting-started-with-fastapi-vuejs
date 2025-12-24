@@ -188,21 +188,21 @@ const deleteSelectedUsers = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column header="Avatar" style="width: 5rem">
+                <Column header="Avatar" style="width: 6rem">
                     <template #body="{ data }">
                         <Avatar :image="getAvatarUrl(data.avatar)" shape="circle" size="normal" />
                     </template>
                 </Column>
-                <Column field="full_name" header="Full Name" sortable style="min-width: 12rem">
+                <Column field="full_name" header="Full Name" sortable style="min-width: 10rem">
                     <template #body="{ data }">
                         <span :class="{ 'text-gray-500': !data.full_name }">{{ data.full_name || 'N/A' }}</span>
                         <Badge v-if="currentUser && currentUser.id === data.id" value="You" severity="info" class="ml-2" />
                     </template>
                 </Column>
-                <Column field="email" header="Email" sortable style="min-width: 16rem"></Column>
-                <Column field="role.name" header="Role" sortable style="min-width: 10rem">
+                <Column field="email" header="Email" sortable style="min-width: 10rem"></Column>
+                <Column field="role.name" header="Role" sortable style="min-width: 6rem">
                     <template #body="{ data }">
-                        {{ data.role ? data.role.name : 'N/A' }}
+                        <span class="capitalize">{{ data.role ? data.role.name : 'N/A' }}</span>
                     </template>
                 </Column>
                 <Column field="is_active" header="Active" dataType="boolean" style="min-width: 6rem">
@@ -220,7 +220,7 @@ const deleteSelectedUsers = async () => {
                         {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 12rem">
+                <Column :exportable="false" style="min-width: 6rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteUser(slotProps.data)" />
@@ -243,7 +243,19 @@ const deleteSelectedUsers = async () => {
                 </div>
                 <div>
                     <label for="role" class="block font-bold mb-3">Role</label>
-                    <Select id="role" v-model="user.role_id" :options="roles" optionLabel="name" optionValue="id" placeholder="Select a Role" fluid showClear class="w-full" />
+                    <Select id="role" v-model="user.role_id" :options="roles" optionLabel="name" optionValue="id" placeholder="Select a Role" fluid showClear class="w-full">
+                        <template #value="slotProps">
+                            <div v-if="slotProps.value" class="capitalize">
+                                {{ roles.find((r) => r.id === slotProps.value)?.name }}
+                            </div>
+                            <span v-else>
+                                {{ slotProps.placeholder }}
+                            </span>
+                        </template>
+                        <template #option="slotProps">
+                            <div class="capitalize">{{ slotProps.option.name }}</div>
+                        </template>
+                    </Select>
                 </div>
                 <div class="flex items-center gap-4">
                     <div class="flex items-center gap-2">

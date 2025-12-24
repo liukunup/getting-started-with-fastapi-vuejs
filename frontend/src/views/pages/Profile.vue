@@ -1,6 +1,6 @@
 <script setup>
 import { UserService } from '@/client';
-import { getAvatarUrl } from '@/utils';
+import { getAvatarUrl, formatDateTime } from '@/utils';
 import { Cropper } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
 import { useToast } from 'primevue/usetoast';
@@ -221,15 +221,6 @@ const updatePassword = async () => {
         submittingPassword.value = false;
     }
 };
-
-const formatDate = (value) => {
-    if (!value) return '';
-    return new Date(value).toLocaleString([], {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-    });
-};
 </script>
 
 <template>
@@ -289,47 +280,34 @@ const formatDate = (value) => {
                     </div>
                 </div>
             </div>
+                        <!-- 安全设置 -->
+            <div class="card">
+                <h5 class="mb-4">Security</h5>
+                <Button label="Change Password" icon="pi pi-key" severity="secondary" fluid @click="openPasswordDialog" />
+            </div>
         </div>
 
         <!-- 侧边信息卡片 -->
         <div class="col-span-12 xl:col-span-4">
-            <!-- 角色信息 -->
-            <div v-if="user.role" class="card mb-6">
-                <h5 class="mb-4">Role Information</h5>
-                <div class="flex flex-col gap-4">
-                    <div class="border border-surface rounded-border p-4 bg-primary-50 dark:bg-primary-900/10">
-                        <div class="flex items-center gap-3 mb-2">
-                            <i class="pi pi-shield text-primary text-2xl"></i>
-                            <div class="flex-1">
-                                <div class="font-bold text-lg text-primary">{{ user.role.name }}</div>
-                                <small class="text-muted-color">User Role</small>
-                            </div>
-                        </div>
-                        <div v-if="user.role.description" class="mt-3 pt-3 border-t border-surface">
-                            <p class="text-sm text-surface-700 dark:text-surface-300">
-                                {{ user.role.description }}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- 账号信息 -->
             <div class="card mb-6">
-                <h5 class="mb-4">Account Information</h5>
+                <h5 class="mb-4">Information</h5>
                 <div class="flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label class="font-bold text-sm text-muted-color">Email Address</label>
+                    <!-- 角色信息 -->
+                    <div v-if="user.role" class="flex flex-col gap-2">
+                        <label class="font-bold text-sm text-muted-color">Role</label>
                         <div class="flex items-center gap-2">
-                            <i class="pi pi-envelope text-muted-color"></i>
-                            <span>{{ user.email || 'N/A' }}</span>
+                            <i class="pi pi-shield text-muted-color"></i>
+                            <span class="capitalize">{{ user.role.name }}</span>
                         </div>
                     </div>
 
-                    <Divider />
+                    <Divider v-if="user.role" />
 
                     <div class="flex flex-col gap-2">
-                        <label class="font-bold text-sm text-muted-color">Account Status</label>
+                        <label class="font-bold text-sm text-muted-color">Status</label>
                         <div class="flex items-center gap-2">
                             <i :class="user.is_active ? 'pi pi-check-circle text-green-500' : 'pi pi-times-circle text-red-500'"></i>
                             <span>{{ user.is_active ? 'Active' : 'Inactive' }}</span>
@@ -339,10 +317,10 @@ const formatDate = (value) => {
                     <Divider />
 
                     <div class="flex flex-col gap-2">
-                        <label class="font-bold text-sm text-muted-color">Created At</label>
+                        <label class="font-bold text-sm text-muted-color">Registered At</label>
                         <div class="flex items-center gap-2">
                             <i class="pi pi-calendar text-muted-color"></i>
-                            <span>{{ formatDate(user.created_at) }}</span>
+                            <span>{{ formatDateTime(user.created_at) }}</span>
                         </div>
                     </div>
 
@@ -350,16 +328,10 @@ const formatDate = (value) => {
                         <label class="font-bold text-sm text-muted-color">Last Updated</label>
                         <div class="flex items-center gap-2">
                             <i class="pi pi-clock text-muted-color"></i>
-                            <span>{{ formatDate(user.updated_at) }}</span>
+                            <span>{{ formatDateTime(user.updated_at) }}</span>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- 安全设置 -->
-            <div class="card">
-                <h5 class="mb-4">Security</h5>
-                <Button label="Change Password" icon="pi pi-key" severity="secondary" fluid @click="openPasswordDialog" />
             </div>
         </div>
     </div>

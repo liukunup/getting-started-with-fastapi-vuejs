@@ -62,6 +62,7 @@ class MenuTreeNode(SQLModel):
     parent_id: uuid.UUID | None = None
     items: list["MenuTreeNode"] | None = None
     children: list["MenuTreeNode"] | None = None
+    roles: list[str] | None = None
 
 
 class MenuTreePublic(SQLModel):

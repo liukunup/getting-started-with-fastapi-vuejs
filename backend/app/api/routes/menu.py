@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
 from app.core.casbin import enforcer
-from app.model import Menu, MenuCreate, MenuTreeNode, MenuUpdate, Message
+from app.model import Menu, MenuCreate, MenuTreeNode, MenuUpdate, Message, Role
 
 router = APIRouter(tags=["Menu"], prefix="/menus")
 
@@ -25,12 +25,28 @@ def read_menus(
     """
     # Fetch all menus
     menus = session.exec(select(Menu).order_by(Menu.sort)).all()
+    all_roles = session.exec(select(Role)).all()
 
     # Convert to MenuTreeNode first to avoid modifying DB objects
     menu_map = {}
     for m in menus:
         mp = MenuTreeNode.model_validate(m)
         mp.items = []
+
+        # Populate roles
+        allowed_roles = []
+        for role in all_roles:
+            subject = f"menu:{role.name}"
+            # Check permission (label or name, with or without prefix)
+            if (
+                (mp.label and enforcer.enforce(subject, mp.label, "visible"))
+                or (mp.name and enforcer.enforce(subject, mp.name, "visible"))
+                or (mp.label and enforcer.enforce(role.name, mp.label, "visible"))
+                or (mp.name and enforcer.enforce(role.name, mp.name, "visible"))
+            ):
+                allowed_roles.append(role.name)
+        mp.roles = allowed_roles
+
         menu_map[m.id] = mp
 
     # Build tree structure
@@ -50,11 +66,22 @@ def read_menus(
             is_accessible = False
             if current_user.is_superuser:
                 is_accessible = True
-            elif node.label:
+            else:
                 subject = (
                     f"menu:{current_user.role.name}" if current_user.role else None
                 )
-                is_accessible = enforcer.enforce(subject, node.label, "visible")
+                # Check against label
+                if node.label and enforcer.enforce(subject, node.label, "visible"):
+                    is_accessible = True
+                # Check against name (if available)
+                elif node.name:
+                    if enforcer.enforce(subject, node.name, "visible"):
+                        is_accessible = True
+                # Fallback: check without prefix (legacy)
+                elif node.label and enforcer.enforce(
+                    current_user.role.name, node.label, "visible"
+                ):
+                    is_accessible = True
 
             # Decide whether to keep this node
             if is_accessible:
@@ -170,3 +197,51 @@ def delete_menu(
     session.commit()
 
     return Message(message="Menu deleted successfully")
+
+
+@router.get(
+    "/{menu_id}/policies",
+    response_model=list[str],
+    dependencies=[Depends(get_current_active_superuser)],
+    summary="Get policies for a Menu",
+)
+def read_menu_policies(
+    session: SessionDep,
+    menu_id: uuid.UUID,
+) -> Any:
+    """
+    Get policies (roles) for a specific Menu.
+    """
+    menu = session.get(Menu, menu_id)
+    if not menu:
+        raise HTTPException(status_code=404, detail="Menu not found")
+
+    # Ensure policies are up to date
+    enforcer.load_policy()
+
+    roles = session.exec(select(Role)).all()
+    allowed_roles = []
+
+    for role in roles:
+        # Check permission for menu:{role.name}
+        subject = f"menu:{role.name}"
+
+        # Check against label (default for UI created menus)
+        if enforcer.enforce(subject, menu.label, "visible"):
+            allowed_roles.append(role.name)
+            continue
+
+        # Check against name (used in initial data)
+        if menu.name and enforcer.enforce(subject, menu.name, "visible"):
+            allowed_roles.append(role.name)
+            continue
+
+        # Also check without prefix just in case (legacy/fallback)
+        if enforcer.enforce(role.name, menu.label, "visible"):
+            allowed_roles.append(role.name)
+            continue
+
+        if menu.name and enforcer.enforce(role.name, menu.name, "visible"):
+            allowed_roles.append(role.name)
+
+    return allowed_roles

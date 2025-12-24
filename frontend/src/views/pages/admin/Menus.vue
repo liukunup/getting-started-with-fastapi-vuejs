@@ -6,6 +6,7 @@ import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
+import MultiSelect from 'primevue/multiselect';
 import Toolbar from 'primevue/toolbar';
 import TreeTable from 'primevue/treetable';
 import { useToast } from 'primevue/usetoast';
@@ -23,22 +24,29 @@ const filters = ref({
 });
 const submitted = ref(false);
 const roles = ref([]);
-const policies = ref([]);
 const permissionsDialog = ref(false);
 const selectedMenu = ref({});
 const rolePermissions = ref({});
 
+const columns = ref([
+    { field: 'icon', header: 'Icon' },
+    { field: 'to', header: 'To' },
+    { field: 'component', header: 'Component' },
+    { field: 'url', header: 'URL' },
+    { field: 'target', header: 'Target' },
+    { field: 'is_hidden', header: 'Hidden' },
+    { field: 'roles', header: 'Roles' }
+]);
+const selectedColumns = ref(columns.value.filter((col) => !['url', 'target'].includes(col.field)));
+
 onMounted(() => {
     loadMenus();
-    loadRolesAndPolicies();
+    loadRoles();
 });
 
-function loadRolesAndPolicies() {
+function loadRoles() {
     RoleService.readRoles().then((data) => {
         roles.value = data.roles || data; // Handle if response is wrapped
-    });
-    PolicyService.readPolicies().then((data) => {
-        policies.value = data;
     });
 }
 
@@ -129,39 +137,51 @@ function deleteMenu() {
 
 function openPermissions(item) {
     selectedMenu.value = item;
-    // Calculate permissions
+    permissionsDialog.value = true;
+
+    // Initialize permissions
     const perms = {};
     // Ensure roles is an array
     const roleList = Array.isArray(roles.value) ? roles.value : [];
 
     roleList.forEach((role) => {
-        // Check if policy exists: sub=menu:{role.name}, obj={item.label}, act=visible
-        const hasPerm = policies.value.some((p) => p.sub === `menu:${role.name}` && p.obj === item.label && p.act === 'visible');
-        perms[role.name] = hasPerm;
+        perms[role.name] = false;
     });
     rolePermissions.value = perms;
-    permissionsDialog.value = true;
+
+    MenuService.readMenuPolicies({ menuId: item.id })
+        .then((allowedRoles) => {
+            const newPerms = { ...rolePermissions.value };
+            allowedRoles.forEach((roleName) => {
+                if (newPerms.hasOwnProperty(roleName)) {
+                    newPerms[roleName] = true;
+                }
+            });
+            rolePermissions.value = newPerms;
+        })
+        .catch((error) => {
+            console.error('Failed to load menu policies:', error);
+            toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load permissions', life: 3000 });
+        });
 }
 
 function togglePermission(role, checked) {
+    // Use name if available (for initial data), otherwise label
+    const obj = selectedMenu.value.name || selectedMenu.value.label;
     const policy = {
         sub: `menu:${role.name}`,
-        obj: selectedMenu.value.label,
+        obj: obj,
         act: 'visible'
     };
 
     if (checked) {
         PolicyService.addPolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = true;
-            // Update local policies cache
-            policies.value.push(policy);
             toast.add({ severity: 'success', summary: 'Permission Added', detail: `Added access for ${role.name}`, life: 3000 });
         });
     } else {
         PolicyService.removePolicy({ requestBody: policy }).then(() => {
             rolePermissions.value[role.name] = false;
-            // Update local policies cache
-            policies.value = policies.value.filter((p) => !(p.sub === policy.sub && p.obj === policy.obj && p.act === policy.act));
             toast.add({ severity: 'success', summary: 'Permission Removed', detail: `Removed access for ${role.name}`, life: 3000 });
         });
     }
@@ -182,17 +202,20 @@ function togglePermission(role, checked) {
             <template #header>
                 <div class="flex flex-wrap gap-2 items-center justify-between">
                     <h4 class="m-0">Manage Menus</h4>
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model="filters['global'].value" placeholder="Search..." />
-                    </IconField>
+                    <div class="flex gap-2">
+                        <MultiSelect v-model="selectedColumns" :options="columns" optionLabel="header" placeholder="Select Columns" :maxSelectedLabels="3" class="w-full sm:w-48" />
+                        <IconField>
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="filters['global'].value" placeholder="Search..." />
+                        </IconField>
+                    </div>
                 </div>
             </template>
 
-            <Column field="label" header="Label" :expander="true" style="min-width: 15rem"></Column>
-            <Column field="icon" header="Icon" style="min-width: 16rem">
+            <Column field="label" header="Label" :expander="true" style="min-width: 16rem"></Column>
+            <Column field="icon" header="Icon" style="min-width: 16rem" v-if="selectedColumns.some((col) => col.field === 'icon')">
                 <template #body="slotProps">
                     <div class="flex items-center gap-2">
                         <i v-if="slotProps.node.data.icon" :class="slotProps.node.data.icon" class="text-lg"></i>
@@ -200,13 +223,20 @@ function togglePermission(role, checked) {
                     </div>
                 </template>
             </Column>
-            <Column field="to" header="To" style="min-width: 12rem"></Column>
-            <Column field="component" header="Component" style="min-width: 15rem"></Column>
-            <Column field="url" header="URL" style="min-width: 12rem"></Column>
-            <Column field="target" header="Target" style="min-width: 8rem"></Column>
-            <Column field="is_hidden" header="Hidden" style="min-width: 6rem">
+            <Column field="to" header="To" style="min-width: 16rem" v-if="selectedColumns.some((col) => col.field === 'to')"></Column>
+            <Column field="component" header="Component" style="min-width: 16rem" v-if="selectedColumns.some((col) => col.field === 'component')"></Column>
+            <Column field="url" header="URL" style="min-width: 20rem" v-if="selectedColumns.some((col) => col.field === 'url')"></Column>
+            <Column field="target" header="Target" style="min-width: 8rem" v-if="selectedColumns.some((col) => col.field === 'target')"></Column>
+            <Column field="is_hidden" header="Hidden" style="min-width: 6rem" v-if="selectedColumns.some((col) => col.field === 'is_hidden')">
                 <template #body="slotProps">
                     <i class="pi" :class="{ 'pi-check text-green-500': slotProps.node.data.is_hidden, 'pi-times text-red-500': !slotProps.node.data.is_hidden }"></i>
+                </template>
+            </Column>
+            <Column field="roles" header="Roles" style="min-width: 12rem" v-if="selectedColumns.some((col) => col.field === 'roles')">
+                <template #body="slotProps">
+                    <div class="flex flex-wrap gap-1">
+                        <span v-for="role in slotProps.node.data.roles" :key="role" class="bg-primary text-primary-contrast rounded px-2 py-1 text-xs capitalize">{{ role }}</span>
+                    </div>
                 </template>
             </Column>
             <Column style="min-width: 12rem">
@@ -222,7 +252,7 @@ function togglePermission(role, checked) {
         <Dialog v-model:visible="permissionsDialog" :style="{ width: '450px' }" header="Manage Permissions" :modal="true">
             <div class="flex flex-col gap-4">
                 <div v-for="role in roles" :key="role.id" class="flex items-center justify-between">
-                    <span>{{ role.name }}</span>
+                    <span class="capitalize">{{ role.name }}</span>
                     <Checkbox :modelValue="rolePermissions[role.name]" @update:modelValue="(val) => togglePermission(role, val)" :binary="true" />
                 </div>
             </div>

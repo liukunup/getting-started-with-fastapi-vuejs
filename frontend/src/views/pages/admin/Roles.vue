@@ -160,9 +160,13 @@ const deleteSelectedRoles = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="description" header="Description" sortable style="min-width: 16rem"></Column>
-                <Column :exportable="false" style="min-width: 12rem">
+                <Column field="name" header="Name" sortable style="width: 8rem">
+                    <template #body="slotProps">
+                        <span class="capitalize">{{ slotProps.data.name }}</span>
+                    </template>
+                </Column>
+                <Column field="description" header="Description" sortable style="min-width: 12rem"></Column>
+                <Column :exportable="false" style="min-width: 6rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editRole(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteRole(slotProps.data)" />
@@ -194,7 +198,7 @@ const deleteSelectedRoles = async () => {
             <div class="flex items-center gap-4">
                 <i class="pi pi-exclamation-triangle !text-3xl" />
                 <span v-if="role"
-                    >Are you sure you want to delete <b>{{ role.name }}</b
+                    >Are you sure you want to delete <b class="capitalize">{{ role.name }}</b
                     >?</span
                 >
             </div>

@@ -21,6 +21,10 @@ from app.model.user import User
 
 class CasbinMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # Always allow health check
+        if request.url.path == f"{settings.API_V1_STR}/utils/healthz/":
+            return await call_next(request)
+
         # Always allow OPTIONS for CORS
         if request.method == "OPTIONS":
             return await call_next(request)
@@ -53,7 +57,10 @@ class CasbinMiddleware(BaseHTTPMiddleware):
                                 subject = f"api:{user.role.name}"
 
             except jwt.PyJWTError:
-                pass
+                return JSONResponse(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    content={"detail": "Could not validate credentials"},
+                )
 
         # Superuser bypass
         if is_superuser:

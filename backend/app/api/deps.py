@@ -56,7 +56,7 @@ def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> U
         token_data = TokenPayload(**payload)
         if token_data.type != "access":
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
+                status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
         user_id = uuid.UUID(token_data.sub)
@@ -82,7 +82,7 @@ def get_current_user(session: SessionDep, token: TokenDep, cache: CacheDep) -> U
         return user
     except InvalidTokenError:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
 

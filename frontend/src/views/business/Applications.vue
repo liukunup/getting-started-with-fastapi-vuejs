@@ -165,20 +165,24 @@ const copyAppKey = async () => {
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="name" header="Name" sortable style="min-width: 12rem"></Column>
-                <Column field="app_id" header="App ID" sortable style="min-width: 12rem"></Column>
+                <Column field="name" header="Name" sortable style="min-width: 8rem">
+                    <template #body="{ data }">
+                        <span v-tooltip.top="data.description">{{ data.name }}</span>
+                    </template>
+                </Column>
+                <Column field="app_id" header="App ID" sortable style="min-width: 24rem"></Column>
                 <Column header="Owner" sortable sortField="owner.full_name" style="min-width: 12rem">
                     <template #body="{ data }">
                         <Chip :label="data.owner?.full_name || data.owner?.username || 'Unknown'" :image="getAvatarUrl(data.owner?.avatar)" class="mr-2" />
                     </template>
                 </Column>
 
-                <Column field="created_at" header="Created At" sortable style="min-width: 8rem">
+                <Column field="created_at" header="Created At" sortable style="min-width: 12rem">
                     <template #body="{ data }">
                         {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 12rem">
+                <Column :exportable="false" style="min-width: 6rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editApplication(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteApplication(slotProps.data)" />

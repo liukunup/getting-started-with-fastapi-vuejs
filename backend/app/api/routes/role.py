@@ -117,4 +117,4 @@ def delete_role(session: SessionDep, role_id: uuid.UUID) -> Any:
     session.delete(role)
     session.commit()
 
-    return Message(detail="Role deleted successfully")
+    return Message(message="Role deleted successfully")

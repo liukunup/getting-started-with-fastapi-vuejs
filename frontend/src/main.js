@@ -16,7 +16,7 @@ import '@/assets/tailwind.css';
 import '@/assets/styles.scss';
 
 // 配置 OpenAPI 客户端
-OpenAPI.BASE = import.meta.env.VITE_API_URL;
+OpenAPI.BASE = import.meta.env.VITE_API_URL || '';
 OpenAPI.TOKEN = async () => {
     return localStorage.getItem('accessToken') || '';
 };
@@ -53,8 +53,11 @@ OpenAPI.interceptors.response.use(async (response) => {
                     // Retry original request
                     return axios.request(originalRequest);
                 } catch (e) {
-                    authStore.logout();
-                    router.push('/auth/login');
+                    // Only logout if refresh token fails
+                    if (e.config && e.config.url && e.config.url.includes('refresh-token')) {
+                        authStore.logout();
+                        router.push('/auth/login');
+                    }
                     throw e;
                 }
             } else {

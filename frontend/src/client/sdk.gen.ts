@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ApiReadApisResponse, ApiCreateApiData, ApiCreateApiResponse, ApiReadApiData, ApiReadApiResponse, ApiUpdateApiData, ApiUpdateApiResponse, ApiDeleteApiData, ApiDeleteApiResponse, ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, LoginLoginOidcResponse, LoginLoginOidcCallbackData, LoginLoginOidcCallbackResponse, LoginLogoutOidcResponse, MenuReadMenusResponse, MenuCreateMenuData, MenuCreateMenuResponse, MenuReadMenuData, MenuReadMenuResponse, MenuUpdateMenuData, MenuUpdateMenuResponse, MenuDeleteMenuData, MenuDeleteMenuResponse, OpenApiOpenapiDemoResponse, PolicyReadPoliciesResponse, PolicyAddPolicyData, PolicyAddPolicyResponse, PolicyRemovePolicyData, PolicyRemovePolicyResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleReadRolesData, RoleReadRolesResponse, RoleCreateRoleData, RoleCreateRoleResponse, RoleReadRoleData, RoleReadRoleResponse, RoleUpdateRoleData, RoleUpdateRoleResponse, RoleDeleteRoleData, RoleDeleteRoleResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskGetRegisteredTasksResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserReadUserMenuResponse, UserUploadAvatarData, UserUploadAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse } from './types.gen';
+import type { ApiReadApisResponse, ApiCreateApiData, ApiCreateApiResponse, ApiReadApiData, ApiReadApiResponse, ApiUpdateApiData, ApiUpdateApiResponse, ApiDeleteApiData, ApiDeleteApiResponse, ApiReadApiPoliciesData, ApiReadApiPoliciesResponse, ApplicationReadApplicationsData, ApplicationReadApplicationsResponse, ApplicationCreateApplicationData, ApplicationCreateApplicationResponse, ApplicationReadApplicationData, ApplicationReadApplicationResponse, ApplicationUpdateApplicationData, ApplicationUpdateApplicationResponse, ApplicationDeleteApplicationData, ApplicationDeleteApplicationResponse, CeleryGetWorkersResponse, CeleryGetActiveTasksResponse, CeleryGetScheduledTasksResponse, CeleryGetReservedTasksResponse, CeleryGetTaskStatusData, CeleryGetTaskStatusResponse, CeleryRevokeTaskData, CeleryRevokeTaskResponse, CeleryGetCeleryStatsResponse, CeleryGetRegisteredTasksResponse, GroupReadGroupsData, GroupReadGroupsResponse, GroupCreateGroupData, GroupCreateGroupResponse, GroupReadGroupData, GroupReadGroupResponse, GroupUpdateGroupData, GroupUpdateGroupResponse, GroupDeleteGroupData, GroupDeleteGroupResponse, ItemReadItemsData, ItemReadItemsResponse, ItemCreateItemData, ItemCreateItemResponse, ItemReadItemData, ItemReadItemResponse, ItemUpdateItemData, ItemUpdateItemResponse, ItemDeleteItemData, ItemDeleteItemResponse, LoginGetLoginConfigResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, LoginRegisterData, LoginRegisterResponse, LoginLoginOidcResponse, LoginLoginOidcCallbackData, LoginLoginOidcCallbackResponse, LoginLogoutOidcResponse, MenuReadMenusResponse, MenuCreateMenuData, MenuCreateMenuResponse, MenuReadMenuData, MenuReadMenuResponse, MenuUpdateMenuData, MenuUpdateMenuResponse, MenuDeleteMenuData, MenuDeleteMenuResponse, MenuReadMenuPoliciesData, MenuReadMenuPoliciesResponse, OpenApiOpenapiDemoResponse, PolicyReadPoliciesResponse, PolicyAddPolicyData, PolicyAddPolicyResponse, PolicyRemovePolicyData, PolicyRemovePolicyResponse, PrivateCreateUserData, PrivateCreateUserResponse, RoleReadRolesData, RoleReadRolesResponse, RoleCreateRoleData, RoleCreateRoleResponse, RoleReadRoleData, RoleReadRoleResponse, RoleUpdateRoleData, RoleUpdateRoleResponse, RoleDeleteRoleData, RoleDeleteRoleResponse, SettingsGetSettingsResponse, SettingsUpdateSettingsData, SettingsUpdateSettingsResponse, TaskReadTasksData, TaskReadTasksResponse, TaskCreateTaskData, TaskCreateTaskResponse, TaskGetRegisteredTasksResponse, TaskReadTaskData, TaskReadTaskResponse, TaskUpdateTaskData, TaskUpdateTaskResponse, TaskDeleteTaskData, TaskDeleteTaskResponse, TaskTriggerTaskData, TaskTriggerTaskResponse, TaskEnableTaskData, TaskEnableTaskResponse, TaskDisableTaskData, TaskDisableTaskResponse, TaskGetAllTaskExecutionsData, TaskGetAllTaskExecutionsResponse, TaskGetExecutionData, TaskGetExecutionResponse, TaskDeleteExecutionData, TaskDeleteExecutionResponse, TaskGetTaskExecutionStatusData, TaskGetTaskExecutionStatusResponse, TaskGetTaskExecutionsData, TaskGetTaskExecutionsResponse, UserReadUsersData, UserReadUsersResponse, UserCreateUserData, UserCreateUserResponse, UserReadUserMeResponse, UserDeleteUserMeResponse, UserUpdateUserMeData, UserUpdateUserMeResponse, UserUpdatePasswordMeData, UserUpdatePasswordMeResponse, UserRegisterUserData, UserRegisterUserResponse, UserReadUserByIdData, UserReadUserByIdResponse, UserUpdateUserData, UserUpdateUserResponse, UserDeleteUserData, UserDeleteUserResponse, UserForceLogoutData, UserForceLogoutResponse, UserReadUserMenuResponse, UserUploadAvatarData, UserUploadAvatarResponse, UtilTestEmailData, UtilTestEmailResponse, UtilHealthCheckResponse } from './types.gen';
 
 export class ApiService {
     /**
@@ -96,6 +96,27 @@ export class ApiService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/apis/{api_id}',
+            path: {
+                api_id: data.apiId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Read Api Policies
+     * Get policies (roles) for a specific API.
+     * @param data The data for the request.
+     * @param data.apiId
+     * @returns ApiReadApiPoliciesResponse Successful Response
+     * @throws ApiError
+     */
+    public static readApiPolicies(data: ApiReadApiPoliciesData): CancelablePromise<ApiReadApiPoliciesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/apis/{api_id}/policies',
             path: {
                 api_id: data.apiId
             },
@@ -829,6 +850,27 @@ export class MenuService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/menus/{menu_id}',
+            path: {
+                menu_id: data.menuId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+
+    /**
+     * Read Menu Policies
+     * Get policies (roles) for a specific Menu.
+     * @param data The data for the request.
+     * @param data.menuId
+     * @returns MenuReadMenuPoliciesResponse Successful Response
+     * @throws ApiError
+     */
+    public static readMenuPolicies(data: MenuReadMenuPoliciesData): CancelablePromise<MenuReadMenuPoliciesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/menus/{menu_id}/policies',
             path: {
                 menu_id: data.menuId
             },
