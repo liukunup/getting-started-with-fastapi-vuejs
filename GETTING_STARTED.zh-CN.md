@@ -37,12 +37,7 @@
    项目根目录下包含一个 `.env` 文件，其中定义了数据库密码、密钥等敏感信息。首次运行时请检查并根据需要修改。
 
 3. **启动服务**
-   使用 Make 命令一键启动：
-   ```bash
-   make build  # 构建镜像
-   make up     # 启动服务
-   ```
-   或者直接使用 Docker Compose：
+   使用 Docker Compose 启动：
    ```bash
    docker-compose up -d --build
    ```
@@ -55,7 +50,7 @@
 
 5. **停止服务**
    ```bash
-   make down
+   docker-compose down
    ```
 
 ## 💻 本地开发指南
@@ -152,7 +147,6 @@
 │   │   ├── layout/      # 页面布局组件
 │   │   └── ...
 ├── docker-compose.yml   # Docker 服务编排
-├── Makefile             # 常用命令快捷方式
 └── README.md            # 项目说明
 ```
 

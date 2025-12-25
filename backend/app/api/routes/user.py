@@ -228,6 +228,11 @@ def read_user_by_id(
             status_code=403,
             detail="The user doesn't have enough privileges",
         )
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
     return user
 
 
@@ -268,7 +273,7 @@ def update_user(
             )
 
     # Update user
-    db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
+    db_user = crud.update_user(session=session, db_user=db_user, user_update=user_in)
 
     return db_user
 
@@ -276,6 +281,7 @@ def update_user(
 @router.delete(
     "/{user_id}",
     dependencies=[Depends(get_current_active_superuser)],
+    response_model=Message,
     summary="Delete a user",
 )
 def delete_user(

@@ -1,15 +1,79 @@
+import asyncio
+import json
+import time
 from typing import Any
 
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException
 
 from app.api.deps import CeleryDep, CurrentUser
+from app.core.cache import cache
 
 router = APIRouter(tags=["Celery"], prefix="/celery")
 
 
+def get_inspect_data(celery_app, method_name: str) -> dict | None:
+    """
+    Get Celery inspect data with caching and locking to prevent dogpile effect
+    """
+    cache_key = f"celery:inspect:{method_name}"
+    lock_key = f"celery:inspect:lock:{method_name}"
+
+    # 1. Try to get from cache
+    try:
+        cached_data = cache.redis.get(cache_key)
+        if cached_data:
+            return json.loads(cached_data)
+    except Exception:
+        pass
+
+    # 2. Try to acquire lock
+    acquired_lock = False
+    try:
+        # Try to acquire lock for 5 seconds
+        acquired_lock = cache.redis.set(lock_key, "1", ex=5, nx=True)
+    except Exception:
+        pass
+
+    if acquired_lock:
+        try:
+            # We have the lock, perform the inspection
+            inspect = celery_app.control.inspect(timeout=1.0)
+            method = getattr(inspect, method_name)
+            data = method()
+
+            # Cache the result
+            if data is not None:
+                try:
+                    cache.redis.set(cache_key, json.dumps(data), ex=15)
+                except Exception:
+                    pass
+            return data
+        except Exception:
+            return None
+        finally:
+            # Release lock
+            try:
+                cache.redis.delete(lock_key)
+            except Exception:
+                pass
+    else:
+        # Lock is held by someone else, wait for result
+        for _ in range(20):  # Wait up to 2 seconds (20 * 0.1s)
+            time.sleep(0.1)
+            try:
+                cached_data = cache.redis.get(cache_key)
+                if cached_data:
+                    return json.loads(cached_data)
+            except Exception:
+                pass
+
+        # If we timed out waiting, return None (or could try to fetch ourselves)
+        return None
+
+
 @router.get("/workers", summary="Get active Celery workers")
-def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
+async def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取所有活跃的Celery Worker信息
     """
@@ -17,11 +81,20 @@ def get_workers(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        # 获取活跃的workers
-        inspect = celery_app.control.inspect()
-        active_workers = inspect.active()
-        registered_tasks = inspect.registered()
-        stats = inspect.stats()
+        # Run inspections in parallel
+        loop = asyncio.get_running_loop()
+
+        active_future = loop.run_in_executor(
+            None, get_inspect_data, celery_app, "active"
+        )
+        registered_future = loop.run_in_executor(
+            None, get_inspect_data, celery_app, "registered"
+        )
+        stats_future = loop.run_in_executor(None, get_inspect_data, celery_app, "stats")
+
+        active_workers = await active_future
+        registered_tasks = await registered_future
+        stats = await stats_future
 
         workers_info = []
         if stats:
@@ -55,8 +128,7 @@ def get_active_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = celery_app.control.inspect()
-        active_tasks = inspect.active()
+        active_tasks = get_inspect_data(celery_app, "active")
 
         tasks_list = []
         if active_tasks:
@@ -89,8 +161,7 @@ def get_scheduled_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = celery_app.control.inspect()
-        scheduled_tasks = inspect.scheduled()
+        scheduled_tasks = get_inspect_data(celery_app, "scheduled")
 
         tasks_list = []
         if scheduled_tasks:
@@ -123,8 +194,7 @@ def get_reserved_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = celery_app.control.inspect()
-        reserved_tasks = inspect.reserved()
+        reserved_tasks = get_inspect_data(celery_app, "reserved")
 
         tasks_list = []
         if reserved_tasks:
@@ -196,7 +266,7 @@ def revoke_task(task_id: str, current_user: CurrentUser, celery_app: CeleryDep) 
 
 
 @router.get("/stats", summary="Get Celery statistics")
-def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
+async def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
     """
     获取Celery统计信息
     """
@@ -204,19 +274,30 @@ def get_celery_stats(current_user: CurrentUser, celery_app: CeleryDep) -> Any:
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = celery_app.control.inspect()
+        # Run inspections in parallel
+        loop = asyncio.get_running_loop()
 
-        # 获取各种任务数量
-        active = inspect.active() or {}
-        scheduled = inspect.scheduled() or {}
-        reserved = inspect.reserved() or {}
+        active_future = loop.run_in_executor(
+            None, get_inspect_data, celery_app, "active"
+        )
+        scheduled_future = loop.run_in_executor(
+            None, get_inspect_data, celery_app, "scheduled"
+        )
+        reserved_future = loop.run_in_executor(
+            None, get_inspect_data, celery_app, "reserved"
+        )
+        stats_future = loop.run_in_executor(None, get_inspect_data, celery_app, "stats")
+
+        active = await active_future or {}
+        scheduled = await scheduled_future or {}
+        reserved = await reserved_future or {}
+        stats = await stats_future or {}
 
         active_count = sum(len(tasks) for tasks in active.values())
         scheduled_count = sum(len(tasks) for tasks in scheduled.values())
         reserved_count = sum(len(tasks) for tasks in reserved.values())
 
         # 获取worker数量
-        stats = inspect.stats() or {}
         worker_count = len(stats)
 
         return {
@@ -246,8 +327,7 @@ def get_registered_tasks(current_user: CurrentUser, celery_app: CeleryDep) -> An
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
-        inspect = celery_app.control.inspect()
-        registered = inspect.registered()
+        registered = get_inspect_data(celery_app, "registered")
 
         all_tasks = set()
         if registered:

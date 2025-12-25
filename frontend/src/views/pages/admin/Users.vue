@@ -220,7 +220,7 @@ const deleteSelectedUsers = async () => {
                         {{ formatDateTime(new Date(data.created_at)) }}
                     </template>
                 </Column>
-                <Column :exportable="false" style="min-width: 6rem">
+                <Column :exportable="false" style="min-width: 8rem">
                     <template #body="slotProps">
                         <Button icon="pi pi-pencil" outlined rounded class="mr-2" @click="editUser(slotProps.data)" />
                         <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteUser(slotProps.data)" />

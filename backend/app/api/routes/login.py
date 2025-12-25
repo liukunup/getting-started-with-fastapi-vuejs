@@ -119,7 +119,7 @@ def test_token(current_user: CurrentUser) -> UserPublic:
     return current_user
 
 
-@router.post("/password-recovery/{email}", summary="Password Recovery")
+@router.post("/login/password-recovery/{email}", summary="Password Recovery")
 def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Message:
     """
     Password Recovery
@@ -154,7 +154,7 @@ def recover_password(session: SessionDep, cache: CacheDep, email: str) -> Messag
     return Message(message="Password recovery email sent")
 
 
-@router.post("/reset-password/", summary="Reset password")
+@router.post("/login/reset-password/", summary="Reset password")
 def reset_password(session: SessionDep, body: NewPassword) -> Message:
     """
     Reset password
@@ -184,7 +184,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
 
 
 @router.post(
-    "/password-recovery-html-content/{email}",
+    "/login/password-recovery-html-content/{email}",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
     summary="HTML Content for Password Recovery",

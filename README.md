@@ -59,7 +59,7 @@ for AI Coding with FastAPI &amp; Vue 3
 - **对象存储**: 集成 Minio，支持文件上传与预签名 URL。
 - **健康检查**: 系统健康状态监控。
 - **Sentry 集成**: 错误追踪与监控。
-- **Docker 部署**: 提供完整的 Docker Compose 编排与 Makefile 快捷命令。
+- **Docker 部署**: 提供完整的 Docker Compose 编排。
 
 ## 数据库模型 (Database Models)
 
@@ -90,9 +90,7 @@ for AI Coding with FastAPI &amp; Vue 3
 ### Docker 部署
 
 ```bash
-make up
-# 或者
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ## 目录结构 (Project Structure)

@@ -53,8 +53,12 @@ class TaskBase(SQLModel):
     celery_task_name: str = Field(
         max_length=255, nullable=False
     )  # Celery任务名称，如 app.worker.tasks.demo_dynamic_task
-    celery_task_args: str | None = Field(default=None, sa_column=Column(Text))  # JSON格式的任务参数
-    celery_task_kwargs: str | None = Field(default=None, sa_column=Column(Text))  # JSON格式的任务关键字参数
+    celery_task_args: str | None = Field(
+        default=None, sa_column=Column(Text)
+    )  # JSON格式的任务参数
+    celery_task_kwargs: str | None = Field(
+        default=None, sa_column=Column(Text)
+    )  # JSON格式的任务关键字参数
 
     # 定时配置
     scheduled_time: datetime | None = Field(default=None)  # 定时执行时间

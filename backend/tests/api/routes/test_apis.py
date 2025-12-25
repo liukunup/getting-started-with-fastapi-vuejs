@@ -74,7 +74,7 @@ def test_read_apis(
     )
     assert response.status_code == 200
     content = response.json()
-    assert len(content["apis"]) >= 1
+    assert len(content["data"]) >= 1
     assert content["total"] >= 1
 
 def test_update_api(

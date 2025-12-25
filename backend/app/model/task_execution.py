@@ -16,12 +16,18 @@ class TaskExecutionBase(SQLModel):
     task_id: uuid.UUID = Field(foreign_key="tasks.id")
     task_name: str | None = Field(default=None, max_length=255)
     celery_task_id: str = Field(max_length=255, nullable=False, unique=True, index=True)
-    celery_task_args: str | None = Field(default=None, sa_column=Column(Text))  # JSON格式的参数
-    celery_task_kwargs: str | None = Field(default=None, sa_column=Column(Text))  # JSON格式的关键字参数
+    celery_task_args: str | None = Field(
+        default=None, sa_column=Column(Text)
+    )  # JSON格式的参数
+    celery_task_kwargs: str | None = Field(
+        default=None, sa_column=Column(Text)
+    )  # JSON格式的关键字参数
     status: str = Field(max_length=20, default=TaskStatus.PENDING)
     started_at: datetime | None = Field(default=None)
     completed_at: datetime | None = Field(default=None)
-    result: str | None = Field(default=None, sa_column=Column(Text))  # JSON格式的执行结果
+    result: str | None = Field(
+        default=None, sa_column=Column(Text)
+    )  # JSON格式的执行结果
     traceback: str | None = Field(default=None, sa_column=Column(Text))  # 错误堆栈信息
     worker: str | None = Field(default=None, max_length=255)  # 执行的worker名称
     runtime: float | None = Field(default=None)  # 执行时长（秒）

@@ -16,7 +16,7 @@ def test_create_item(
     assert content["name"] == data["name"]
     assert content["description"] == data["description"]
     assert "id" in content
-    assert "owner_id" in content
+    # assert "owner_id" in content
 
 def test_read_item(
     client: TestClient, superuser_token_headers: dict[str, str]

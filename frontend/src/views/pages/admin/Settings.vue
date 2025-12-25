@@ -1,10 +1,22 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { SettingsService, UtilService } from '@/client';
 
 const toast = useToast();
 const settings = ref({});
+
+watch(() => settings.value.SMTP_TLS, (newVal) => {
+    if (newVal) {
+        settings.value.SMTP_SSL = false;
+    }
+});
+
+watch(() => settings.value.SMTP_SSL, (newVal) => {
+    if (newVal) {
+        settings.value.SMTP_TLS = false;
+    }
+});
 const loading = ref(false);
 const loadingGeneral = ref(false);
 const loadingSentry = ref(false);
@@ -175,7 +187,7 @@ onMounted(() => {
         <!-- General Settings -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
-                <div class="font-semibold text-xl">General Settings</div>
+                <div class="font-semibold text-xl">General</div>
                 <Button label="Save" icon="pi pi-save" @click="saveGeneral" :loading="loadingGeneral" size="small" />
             </div>
             <div class="field">
@@ -187,7 +199,7 @@ onMounted(() => {
         <!-- Sentry Settings -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
-                <div class="font-semibold text-xl">Sentry Configuration</div>
+                <div class="font-semibold text-xl">Sentry</div>
                 <Button label="Save" icon="pi pi-save" @click="saveSentry" :loading="loadingSentry" size="small" />
             </div>
             <div class="field">
@@ -199,7 +211,7 @@ onMounted(() => {
         <!-- Email Settings -->
         <div class="card">
             <div class="flex justify-between items-center mb-4">
-                <div class="font-semibold text-xl">Email Settings</div>
+                <div class="font-semibold text-xl">Email</div>
                 <div class="flex gap-2">
                     <Button label="Test Email" icon="pi pi-envelope" @click="openTestEmailDialog" severity="secondary" size="small" />
                     <Button label="Save" icon="pi pi-save" @click="saveEmail" :loading="loadingEmail" size="small" />
@@ -211,12 +223,12 @@ onMounted(() => {
                     <InputText id="smtp_host" v-model="settings.SMTP_HOST" class="w-full" />
                 </div>
                 <div class="field">
-                    <label for="smtp_port" class="block font-medium mb-2">Port</label>
-                    <InputNumber id="smtp_port" v-model="settings.SMTP_PORT" class="w-full" :useGrouping="false" />
-                </div>
-                <div class="field">
                     <label for="smtp_user" class="block font-medium mb-2">User</label>
                     <InputText id="smtp_user" v-model="settings.SMTP_USER" class="w-full" />
+                </div>
+                <div class="field">
+                    <label for="smtp_port" class="block font-medium mb-2">Port</label>
+                    <InputNumber id="smtp_port" v-model="settings.SMTP_PORT" class="w-full" :useGrouping="false" />
                 </div>
                 <div class="field">
                     <label for="smtp_password" class="block font-medium mb-2">Password</label>
@@ -270,12 +282,12 @@ onMounted(() => {
                     <InputText id="oidc_client_id" v-model="settings.OIDC_CLIENT_ID" class="w-full" />
                 </div>
                 <div class="field">
-                    <label for="oidc_client_secret" class="block font-medium mb-2">Client Secret</label>
-                    <InputText id="oidc_client_secret" v-model="settings.OIDC_CLIENT_SECRET" type="password" class="w-full" placeholder="Leave empty to keep unchanged" />
-                </div>
-                <div class="field">
                     <label for="oidc_scopes" class="block font-medium mb-2">Scopes</label>
                     <InputText id="oidc_scopes" v-model="settings.OIDC_SCOPES" class="w-full" placeholder="openid profile email" />
+                </div>
+                <div class="field">
+                    <label for="oidc_client_secret" class="block font-medium mb-2">Client Secret</label>
+                    <InputText id="oidc_client_secret" v-model="settings.OIDC_CLIENT_SECRET" type="password" class="w-full" placeholder="Leave empty to keep unchanged" />
                 </div>
                 <div class="field col-span-2">
                     <label for="oidc_auth_url" class="block font-medium mb-2">Authorization URL</label>
@@ -314,22 +326,22 @@ onMounted(() => {
                     <InputText id="ldap_server" v-model="settings.LDAP_HOST" class="w-full" />
                 </div>
                 <div class="field">
-                    <label for="ldap_port" class="block font-medium mb-2">Port</label>
-                    <InputNumber id="ldap_port" v-model="settings.LDAP_PORT" class="w-full" :useGrouping="false" />
-                </div>
-                <div class="field">
                     <label for="ldap_bind_dn" class="block font-medium mb-2">Bind DN</label>
                     <InputText id="ldap_bind_dn" v-model="settings.LDAP_BIND_DN" class="w-full" />
+                </div>
+                <div class="field">
+                    <label for="ldap_port" class="block font-medium mb-2">Port</label>
+                    <InputNumber id="ldap_port" v-model="settings.LDAP_PORT" class="w-full" :useGrouping="false" />
                 </div>
                 <div class="field">
                     <label for="ldap_bind_password" class="block font-medium mb-2">Bind Password</label>
                     <InputText id="ldap_bind_password" v-model="settings.LDAP_BIND_PASSWORD" type="password" class="w-full" placeholder="Leave empty to keep unchanged" />
                 </div>
-                <div class="field col-span-2">
+                <div class="field">
                     <label for="ldap_base_dn" class="block font-medium mb-2">Base DN</label>
                     <InputText id="ldap_base_dn" v-model="settings.LDAP_BASE_DN" class="w-full" />
                 </div>
-                <div class="field col-span-2">
+                <div class="field">
                     <label for="ldap_user_filter" class="block font-medium mb-2">User Filter</label>
                     <InputText id="ldap_user_filter" v-model="settings.LDAP_USER_FILTER" class="w-full" />
                 </div>

@@ -52,6 +52,7 @@ def client_fixture(session: Session):
         mock_cache = MagicMock(spec=Cache)
         mock_cache.redis = MagicMock()
         mock_cache.redis.get.return_value = None
+        mock_cache.redis.incr.return_value = 1
         return mock_cache
 
     def get_celery_app_override():

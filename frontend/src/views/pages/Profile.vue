@@ -280,17 +280,10 @@ const updatePassword = async () => {
                     </div>
                 </div>
             </div>
-                        <!-- 安全设置 -->
-            <div class="card">
-                <h5 class="mb-4">Security</h5>
-                <Button label="Change Password" icon="pi pi-key" severity="secondary" fluid @click="openPasswordDialog" />
-            </div>
         </div>
 
         <!-- 侧边信息卡片 -->
         <div class="col-span-12 xl:col-span-4">
-
-
             <!-- 账号信息 -->
             <div class="card mb-6">
                 <h5 class="mb-4">Information</h5>
@@ -332,6 +325,11 @@ const updatePassword = async () => {
                         </div>
                     </div>
                 </div>
+            </div>
+            <!-- 安全设置 -->
+            <div class="card">
+                <h5 class="mb-4">Security</h5>
+                <Button label="Change Password" icon="pi pi-key" severity="secondary" fluid @click="openPasswordDialog" />
             </div>
         </div>
     </div>
