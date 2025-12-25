@@ -487,8 +487,10 @@ def get_all_task_executions(
     execution_public_list = []
     for e in executions:
         e_public = TaskExecutionPublic.model_validate(e)
-        if not e_public.task_name and e.task:
-            e_public.task_name = e.task.name
+        if e.task:
+            if not e_public.task_name:
+                e_public.task_name = e.task.name
+            e_public.celery_task_name = e.task.celery_task_name
         execution_public_list.append(e_public)
 
     return TaskExecutionsPublic(executions=execution_public_list, total=total)
@@ -521,6 +523,7 @@ def get_execution(
     execution_public = TaskExecutionPublic.model_validate(execution)
     if not execution_public.task_name:
         execution_public.task_name = task.name
+    execution_public.celery_task_name = task.celery_task_name
     return execution_public
 
 
@@ -627,4 +630,11 @@ def get_task_executions(
     statement = select(TaskExecution).where(TaskExecution.task_id == task_id)
     total = len(session.exec(statement).all())
 
-    return TaskExecutionsPublic(executions=executions, total=total)
+    execution_public_list = []
+    for e in executions:
+        e_public = TaskExecutionPublic.model_validate(e)
+        e_public.task_name = task.name
+        e_public.celery_task_name = task.celery_task_name
+        execution_public_list.append(e_public)
+
+    return TaskExecutionsPublic(executions=execution_public_list, total=total)

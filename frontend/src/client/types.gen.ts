@@ -297,6 +297,7 @@ export type TaskExecutionPublic = {
     id: string;
     task_id: string;
     task_name?: (string | null);
+    celery_task_name?: (string | null);
     celery_task_id: string;
     celery_task_args?: (string | null);
     celery_task_kwargs?: (string | null);

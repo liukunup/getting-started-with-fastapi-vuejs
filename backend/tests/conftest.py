@@ -1,11 +1,17 @@
 import pytest
 from unittest.mock import MagicMock, patch
+import sys
+
+# Mock casbin dependencies to avoid DB connection during import
+sys.modules["casbin_sqlalchemy_adapter"] = MagicMock()
+sys.modules["casbin"] = MagicMock()
+
 from fastapi.testclient import TestClient
 from sqlmodel import Session, SQLModel, create_engine
 from sqlmodel.pool import StaticPool
 
 from app.main import app
-from app.api.deps import get_db, get_cache
+from app.api.deps import get_db, get_cache, get_celery_app
 from app.core.config import settings
 from app.core.cache import Cache
 from app.model.user import UserCreate
@@ -48,11 +54,24 @@ def client_fixture(session: Session):
         mock_cache.redis.get.return_value = None
         return mock_cache
 
+    def get_celery_app_override():
+        mock_celery = MagicMock()
+        mock_celery.send_task.return_value = MagicMock(id="test_task_id")
+        mock_celery.control.revoke.return_value = None
+        return mock_celery
+
     app.dependency_overrides[get_db] = get_session_override
     app.dependency_overrides[get_cache] = get_cache_override
+    app.dependency_overrides[get_celery_app] = get_celery_app_override
     
     client = TestClient(app)
-    yield client
+    
+    # Patch engine in middleware and database module to use test engine
+    with patch("app.core.middleware.engine", engine), \
+         patch("app.core.database.engine", engine), \
+         patch("app.worker.handlers.engine", engine):
+        yield client
+    
     app.dependency_overrides.clear()
 
 @pytest.fixture(name="superuser_token_headers")

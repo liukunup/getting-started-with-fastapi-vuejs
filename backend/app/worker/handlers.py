@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timezone
 
@@ -36,6 +37,14 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG0
     logger.info(
         f"Signal task_prerun received for task_id: {task_id}, task_name: {task.name if task else 'None'}"
     )
+
+    # Extract args and kwargs from the signal arguments
+    task_args = kwargs.get("args")
+    task_kwargs = kwargs.get("kwargs")
+
+    celery_task_args = json.dumps(task_args) if task_args is not None else None
+    celery_task_kwargs = json.dumps(task_kwargs) if task_kwargs is not None else None
+
     try:
         with Session(engine) as session:
             db_task = None
@@ -69,8 +78,8 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG0
                         task_id=db_task.id,
                         task_name=db_task.name,
                         celery_task_id=task_id,
-                        celery_task_args=db_task.celery_task_args,
-                        celery_task_kwargs=db_task.celery_task_kwargs,
+                        celery_task_args=celery_task_args,
+                        celery_task_kwargs=celery_task_kwargs,
                         status=TaskStatus.DISABLED,
                         started_at=datetime.now(timezone.utc),
                         completed_at=datetime.now(timezone.utc),
@@ -89,8 +98,8 @@ def task_prerun_handler(task_id=None, task=None, *args, **kwargs):  # noqa: ARG0
                         task_id=db_task.id,
                         task_name=db_task.name,
                         celery_task_id=task_id,
-                        celery_task_args=db_task.celery_task_args,
-                        celery_task_kwargs=db_task.celery_task_kwargs,
+                        celery_task_args=celery_task_args,
+                        celery_task_kwargs=celery_task_kwargs,
                         status=TaskStatus.RUNNING,
                         started_at=datetime.now(timezone.utc),
                         worker=task.request.hostname if task and task.request else None,

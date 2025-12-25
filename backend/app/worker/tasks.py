@@ -25,6 +25,10 @@ def demo_dynamic_task(self, *args, **kwargs):  # noqa: ARG001
     A demo dynamic task that accepts arguments.
     """
 
-    logger.info(f"Dynamic task executed with args: {args}, kwargs: {kwargs}")
+    logger.info(
+        f"Dynamic task {self.request.id} executed with args: {args}, kwargs: {kwargs}"
+    )
 
-    return f"Dynamic task completed with args: {args}, kwargs: {kwargs}"
+    return (
+        f"Dynamic task {self.request.id} completed with args: {args}, kwargs: {kwargs}"
+    )

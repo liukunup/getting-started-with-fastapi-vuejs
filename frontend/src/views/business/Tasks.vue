@@ -165,8 +165,8 @@ const openNew = () => {
     task.value = {
         task_type: 'async',
         celery_task_name: '',
-        task_args: '[]',
-        task_kwargs: '{}',
+        celery_task_args: '[]',
+        celery_task_kwargs: '{}',
         enabled: true,
         periodic_schedule_type: 'crontab',
         crontab_minute: '*',
@@ -204,11 +204,11 @@ const validateTask = () => {
 
     // 验证JSON格式
     try {
-        if (task.value.task_args) {
-            JSON.parse(task.value.task_args);
+        if (task.value.celery_task_args) {
+            JSON.parse(task.value.celery_task_args);
         }
-        if (task.value.task_kwargs) {
-            JSON.parse(task.value.task_kwargs);
+        if (task.value.celery_task_kwargs) {
+            JSON.parse(task.value.celery_task_kwargs);
         }
     } catch (e) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Invalid JSON format for args or kwargs', life: 3000 });
@@ -417,7 +417,7 @@ const setNow = () => {
                         <span>{{ data.celery_task_name }}</span>
                     </template>
                 </Column>
-                <Column header="Schedule" style="min-width: 10rem">
+                <Column header="Schedule" style="min-width: 12rem">
                     <template #body="{ data }">
                         <span v-if="data.task_type === 'scheduled'">
                             {{ formatDate(data.scheduled_time) }}
@@ -572,13 +572,13 @@ const setNow = () => {
                 </div>
 
                 <div>
-                    <label for="task_args" class="block font-bold mb-3">Task Args (JSON Array)</label>
-                    <Textarea id="task_args" v-model="task.task_args" placeholder='["arg1", "arg2"]' rows="3" fluid />
+                    <label for="celery_task_args" class="block font-bold mb-3">Task Args (JSON Array)</label>
+                    <Textarea id="celery_task_args" v-model="task.celery_task_args" placeholder='["arg1", "arg2"]' rows="3" fluid />
                 </div>
 
                 <div>
-                    <label for="task_kwargs" class="block font-bold mb-3">Task Kwargs (JSON Object)</label>
-                    <Textarea id="task_kwargs" v-model="task.task_kwargs" placeholder='{"key": "value"}' rows="3" fluid />
+                    <label for="celery_task_kwargs" class="block font-bold mb-3">Task Kwargs (JSON Object)</label>
+                    <Textarea id="celery_task_kwargs" v-model="task.celery_task_kwargs" placeholder='{"key": "value"}' rows="3" fluid />
                 </div>
             </div>
 

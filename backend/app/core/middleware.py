@@ -43,10 +43,18 @@ class CasbinMiddleware(BaseHTTPMiddleware):
                 user_id = payload.get("sub")
 
                 if user_id:
+                    try:
+                        user_uuid = uuid.UUID(user_id)
+                    except ValueError:
+                        return JSONResponse(
+                            status_code=status.HTTP_401_UNAUTHORIZED,
+                            content={"detail": "Invalid authentication credentials"},
+                        )
+
                     with Session(engine) as session:
                         statement = (
                             select(User)
-                            .where(User.id == user_id)
+                            .where(User.id == user_uuid)
                             .options(joinedload(User.role))
                         )
                         user = session.exec(statement).first()

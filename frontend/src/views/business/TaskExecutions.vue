@@ -12,6 +12,8 @@ const loading = ref(true);
 const globalFilterValue = ref('');
 const deleteExecutionDialog = ref(false);
 const executionToDelete = ref(null);
+const executionDialog = ref(false);
+const selectedExecution = ref(null);
 
 // 执行状态选项
 const executionStatuses = [
@@ -114,6 +116,11 @@ const confirmDeleteExecution = (execution) => {
     deleteExecutionDialog.value = true;
 };
 
+const openExecutionDialog = (execution) => {
+    selectedExecution.value = execution;
+    executionDialog.value = true;
+};
+
 const deleteExecutionConfirmed = async () => {
     try {
         await TaskService.deleteExecution({ executionId: executionToDelete.value.id });
@@ -144,8 +151,9 @@ const deleteExecutionConfirmed = async () => {
             :rowsPerPageOptions="[5, 10, 25, 50]"
             paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
             currentPageReportTemplate="Showing {first} to {last} of {totalRecords} executions"
-            showGridlines
             :rowHover="true"
+            sortField="created_at"
+            :sortOrder="-1"
         >
             <template #header>
                 <div class="flex justify-between">
@@ -167,23 +175,23 @@ const deleteExecutionConfirmed = async () => {
 
             <Column field="task_name" header="Task Name" sortable style="min-width: 12rem">
                 <template #body="{ data }">
-                    <span class="font-semibold">{{ data.task_name || '-' }}</span>
+                    <span>{{ data.task_name || '-' }}</span>
                 </template>
                 <template #filter="{ filterModel }">
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by task name" />
                 </template>
             </Column>
 
-            <Column field="celery_task_id" header="Task ID" sortable style="min-width: 15rem">
+            <Column field="celery_task_id" header="Task ID" sortable style="min-width: 20rem" >
                 <template #body="{ data }">
-                    <span class="text-xs font-mono">{{ data.celery_task_id }}</span>
+                    <span class="text-xs font-mono font-semibold text-primary cursor-pointer hover:underline" @click="openExecutionDialog(data)">{{ data.celery_task_id }}</span>
                 </template>
                 <template #filter="{ filterModel }">
                     <InputText v-model="filterModel.value" type="text" placeholder="Search by task ID" />
                 </template>
             </Column>
 
-            <Column field="status" header="Status" sortable :filterMenuStyle="{ width: '14rem' }" style="min-width: 10rem">
+            <Column field="status" header="Status" sortable :filterMenuStyle="{ width: '14rem' }" style="min-width: 8rem" >
                 <template #body="{ data }">
                     <Tag :value="getStatusLabel(data.status)" :severity="getStatusSeverity(data.status)" />
                 </template>
@@ -196,46 +204,31 @@ const deleteExecutionConfirmed = async () => {
                 </template>
             </Column>
 
-            <Column field="started_at" header="Started At" sortable filterField="started_at" dataType="date" style="min-width: 12rem">
-                <template #body="{ data }">
-                    <span class="text-sm">{{ data.started_at ? formatDate(data.started_at) : '-' }}</span>
-                </template>
-                <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template>
-            </Column>
-
-            <Column field="completed_at" header="Completed At" sortable filterField="completed_at" dataType="date" style="min-width: 15rem">
-                <template #body="{ data }">
-                    <span class="text-sm">{{ data.completed_at ? formatDate(data.completed_at) : '-' }}</span>
-                </template>
-                <template #filter="{ filterModel }">
-                    <DatePicker v-model="filterModel.value" dateFormat="yy/mm/dd" placeholder="yyyy/mm/dd" />
-                </template>
-            </Column>
-
-            <Column field="runtime" header="Runtime" sortable style="min-width: 8rem">
+            <Column field="runtime" header="Runtime" sortable style="min-width: 8rem" >
                 <template #body="{ data }">
                     <span class="text-sm font-semibold">{{ formatRuntime(data.runtime) }}</span>
                 </template>
             </Column>
-
-            <Column field="worker" header="Worker" sortable style="min-width: 12rem">
+            
+            <Column field="created_at" header="Created At" sortable style="min-width: 12rem" >
                 <template #body="{ data }">
-                    <span class="text-xs">{{ data.worker || '-' }}</span>
-                </template>
-                <template #filter="{ filterModel }">
-                    <InputText v-model="filterModel.value" type="text" placeholder="Search by worker" />
+                    <span class="text-sm">{{ data.created_at ? formatDate(data.created_at) : '-' }}</span>
                 </template>
             </Column>
 
-            <Column field="created_at" header="Created At" sortable style="min-width: 12rem">
+            <Column field="started_at" header="Started At" sortable dataType="date" style="min-width: 12rem" >
                 <template #body="{ data }">
-                    <span class="text-sm text-gray-500">{{ data.created_at ? formatDate(data.created_at) : '-' }}</span>
+                    <span class="text-sm">{{ data.started_at ? formatDate(data.started_at) : '-' }}</span>
                 </template>
             </Column>
 
-            <Column header="Actions" :exportable="false" style="min-width: 8rem">
+            <Column field="completed_at" header="Completed At" sortable dataType="date" style="min-width: 12rem" >
+                <template #body="{ data }">
+                    <span class="text-sm">{{ data.completed_at ? formatDate(data.completed_at) : '-' }}</span>
+                </template>
+            </Column>
+
+            <Column :exportable="false" style="min-width: 3rem" >
                 <template #body="{ data }">
                     <Button icon="pi pi-trash" outlined rounded severity="danger" @click="confirmDeleteExecution(data)" v-tooltip="'Delete execution'" />
                 </template>
@@ -251,6 +244,70 @@ const deleteExecutionConfirmed = async () => {
             <template #footer>
                 <Button label="No" icon="pi pi-times" text @click="deleteExecutionDialog = false" />
                 <Button label="Yes" icon="pi pi-check" severity="danger" @click="deleteExecutionConfirmed" />
+            </template>
+        </Dialog>
+
+        <!-- Execution Details Dialog -->
+        <Dialog v-model:visible="executionDialog" :style="{ width: '600px' }" header="Execution Details" :modal="true" class="p-fluid">
+            <div v-if="selectedExecution" class="flex flex-col gap-4">
+                <div class="grid grid-cols-12 gap-2">
+                    <div class="col-span-4 font-semibold">Task Name:</div>
+                    <div class="col-span-8">{{ selectedExecution.task_name || '-' }}</div>
+
+                    <div class="col-span-4 font-semibold">Celery Task Name:</div>
+                    <div class="col-span-8 font-mono text-sm">{{ selectedExecution.celery_task_name || '-' }}</div>
+                    
+                    <div class="col-span-4 font-semibold">Task ID:</div>
+                    <div class="col-span-8 font-mono text-sm">{{ selectedExecution.celery_task_id }}</div>
+                    
+                    <div class="col-span-4 font-semibold">Status:</div>
+                    <div class="col-span-8">
+                        <Tag :value="getStatusLabel(selectedExecution.status)" :severity="getStatusSeverity(selectedExecution.status)" />
+                    </div>
+                    
+                    <div class="col-span-4 font-semibold">Worker:</div>
+                    <div class="col-span-8">{{ selectedExecution.worker || '-' }}</div>
+                    
+                    <div class="col-span-4 font-semibold">Started At:</div>
+                    <div class="col-span-8">{{ formatDate(selectedExecution.started_at) }}</div>
+                    
+                    <div class="col-span-4 font-semibold">Completed At:</div>
+                    <div class="col-span-8">{{ formatDate(selectedExecution.completed_at) }}</div>
+                    
+                    <div class="col-span-4 font-semibold">Runtime:</div>
+                    <div class="col-span-8">{{ formatRuntime(selectedExecution.runtime) }}</div>
+                </div>
+
+                <div v-if="selectedExecution.celery_task_args">
+                    <div class="font-semibold mb-2">Args:</div>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-32 font-mono text-sm">
+                        {{ selectedExecution.celery_task_args }}
+                    </div>
+                </div>
+
+                <div v-if="selectedExecution.celery_task_kwargs">
+                    <div class="font-semibold mb-2">Kwargs:</div>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-32 font-mono text-sm">
+                        {{ selectedExecution.celery_task_kwargs }}
+                    </div>
+                </div>
+
+                <div v-if="selectedExecution.result">
+                    <div class="font-semibold mb-2">Result:</div>
+                    <div class="bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-auto max-h-48 font-mono text-sm whitespace-pre-wrap">
+                        {{ selectedExecution.result }}
+                    </div>
+                </div>
+
+                <div v-if="selectedExecution.traceback">
+                    <div class="font-semibold mb-2 text-red-500">Traceback:</div>
+                    <div class="bg-red-50 dark:bg-red-900/20 p-2 rounded overflow-auto max-h-64 font-mono text-sm whitespace-pre-wrap text-red-700 dark:text-red-400">
+                        {{ selectedExecution.traceback }}
+                    </div>
+                </div>
+            </div>
+            <template #footer>
+                <Button label="Close" icon="pi pi-times" text @click="executionDialog = false" />
             </template>
         </Dialog>
     </div>
