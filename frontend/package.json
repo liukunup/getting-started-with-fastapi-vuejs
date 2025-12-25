@@ -38,6 +38,6 @@
         "tailwindcss": "^4.1.17",
         "typescript": "^5.2.2",
         "unplugin-vue-components": "^0.27.3",
-        "vite": "^7.1.11"
+        "vite": "^7.3.0"
     }
 }
